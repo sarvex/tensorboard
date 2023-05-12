@@ -115,9 +115,7 @@ class CredentialsStore(object):
     def write_credentials(self, credentials):
         """Writes a `google.oauth2.credentials.Credentials` to the store."""
         if not isinstance(credentials, google.oauth2.credentials.Credentials):
-            raise TypeError(
-                "Cannot write credentials of type %s" % type(credentials)
-            )
+            raise TypeError(f"Cannot write credentials of type {type(credentials)}")
         if self._credentials_filepath is None:
             return
         # Make the credential file private if not on Windows; on Windows we rely on
@@ -203,8 +201,7 @@ class IdTokenAuthMetadataPlugin(grpc.AuthMetadataPlugin):
         super(IdTokenAuthMetadataPlugin, self).__init__()
         if not isinstance(credentials, google.oauth2.credentials.Credentials):
             raise TypeError(
-                "Cannot get ID tokens from credentials type %s"
-                % type(credentials)
+                f"Cannot get ID tokens from credentials type {type(credentials)}"
             )
         self._credentials = credentials
         self._request = request
@@ -221,8 +218,7 @@ class IdTokenAuthMetadataPlugin(grpc.AuthMetadataPlugin):
         self._credentials.before_request(
             self._request, context.method_name, context.service_url, headers
         )
-        id_token = getattr(self._credentials, "id_token", None)
-        if id_token:
+        if id_token := getattr(self._credentials, "id_token", None):
             self._credentials.apply(headers, token=id_token)
         else:
             logger.error("Failed to find ID token credentials")

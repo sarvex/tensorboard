@@ -51,7 +51,7 @@ def s3_temp_dir(
 
     Returns S3 URL of the top directory in the form 's3://bucket/path'
     """
-    s3_url = "s3://{}/{}".format(bucket_name, top_directory)
+    s3_url = f"s3://{bucket_name}/{top_directory}"
     client = boto3.client("s3", region_name=region_name)
     client.create_bucket(Bucket=bucket_name)
     return s3_url

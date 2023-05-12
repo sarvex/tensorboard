@@ -272,13 +272,12 @@ class GrpcDataProvider(provider.DataProvider):
                     for (step, wt, blob_sequence) in zip(
                         d.step, d.wall_time, d.values
                     ):
-                        values = []
-                        for ref in blob_sequence.blob_refs:
-                            values.append(
-                                provider.BlobReference(
-                                    blob_key=ref.blob_key, url=ref.url or None
-                                )
+                        values = [
+                            provider.BlobReference(
+                                blob_key=ref.blob_key, url=ref.url or None
                             )
+                            for ref in blob_sequence.blob_refs
+                        ]
                         point = provider.BlobSequenceDatum(
                             step=step, wall_time=wt, values=tuple(values)
                         )

@@ -196,7 +196,7 @@ class GFileTest(unittest.TestCase):
 
     @mock_s3
     def testReadLines(self):
-        ckpt_lines = ["\n"] + ["line {}\n".format(i) for i in range(10)] + [" "]
+        ckpt_lines = ["\n"] + [f"line {i}\n" for i in range(10)] + [" "]
         ckpt_content = "".join(ckpt_lines)
         temp_dir = self._CreateDeepS3Structure(ckpt_content=ckpt_content)
         ckpt_path = self._PathJoin(temp_dir, "model.ckpt")
@@ -326,7 +326,7 @@ class GFileTest(unittest.TestCase):
         Returns:
           S3 URL of the top directory in the form 's3://bucket/path'
         """
-        s3_top_url = "s3://{}/{}".format(bucket_name, top_directory)
+        s3_top_url = f"s3://{bucket_name}/{top_directory}"
 
         # Add a few subdirectories.
         directory_names = (
@@ -355,7 +355,7 @@ class GFileTest(unittest.TestCase):
         client.put_object(Body="", Bucket=bucket_name, Key=top_directory)
         for directory_name in directory_names:
             # Add an end slash
-            path = top_directory + "/" + directory_name + "/"
+            path = f"{top_directory}/{directory_name}/"
             # Create an empty object so the location exists
             client.put_object(Body="", Bucket=bucket_name, Key=directory_name)
 
@@ -377,11 +377,8 @@ class GFileTest(unittest.TestCase):
         )
         for file_name in file_names:
             # Add an end slash
-            path = top_directory + "/" + file_name
-            if file_name == "model.ckpt":
-                content = ckpt_content
-            else:
-                content = ""
+            path = f"{top_directory}/{file_name}"
+            content = ckpt_content if file_name == "model.ckpt" else ""
             client.put_object(Body=content, Bucket=bucket_name, Key=path)
         return s3_top_url
 

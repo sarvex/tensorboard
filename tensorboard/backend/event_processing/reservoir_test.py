@@ -268,7 +268,7 @@ class ReservoirBucketStatisticalDistributionTest(tf.test.TestCase):
         divbins = [0] * self.n_buckets
         modbins = [0] * self.n_buckets
         # Slice off the last item when we iterate.
-        for item in b.Items()[0:-1]:
+        for item in b.Items()[:-1]:
             divbins[item // self.total_per_bucket] += 1
             modbins[item % self.n_buckets] += 1
 

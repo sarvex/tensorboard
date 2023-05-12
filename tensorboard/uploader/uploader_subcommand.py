@@ -217,8 +217,8 @@ class _DeleteExperimentIntent(_Intent):
                 "different user." % experiment_id
             )
         except grpc.RpcError as e:
-            _die("Internal error deleting experiment: %s" % e)
-        print("Deleted experiment %s." % experiment_id)
+            _die(f"Internal error deleting experiment: {e}")
+        print(f"Deleted experiment {experiment_id}.")
 
 
 class _UpdateMetadataIntent(_Intent):
@@ -274,9 +274,9 @@ class _UpdateMetadataIntent(_Intent):
                 "different user." % experiment_id
             )
         except uploader_lib.InvalidArgumentError as e:
-            _die("Server cannot modify experiment as requested: %s" % e)
+            _die(f"Server cannot modify experiment as requested: {e}")
         except grpc.RpcError as e:
-            _die("Internal error modifying experiment: %s" % e)
+            _die(f"Internal error modifying experiment: {e}")
         logging.info("Modified experiment %s.", experiment_id)
         if self.name is not None:
             logging.info("Set name to %r", self.name)
@@ -418,7 +418,7 @@ class UploadIntent(_Intent):
             one_shot=self.one_shot,
         )
         if self.one_shot and not tf.io.gfile.isdir(self.logdir):
-            print("%s: No such directory." % self.logdir)
+            print(f"{self.logdir}: No such directory.")
             print(
                 "User specified `one_shot` mode with an unavailable "
                 "logdir. Exiting without creating an experiment."
@@ -461,15 +461,11 @@ class UploadIntent(_Intent):
                     "    tensorboard dev delete --experiment_id=%s"
                     % (self.logdir, uploader.experiment_id)
                 )
-            end_message = "\n\n"
-            if interrupted:
-                end_message += "Interrupted."
-            else:
-                end_message += "Done."
+            end_message = "\n\n" + ("Interrupted." if interrupted else "Done.")
             # Only Add the "View your TensorBoard" message if there was any
             # data added at all.
             if not self.dry_run and uploader.has_data():
-                end_message += " View your TensorBoard at %s" % url
+                end_message += f" View your TensorBoard at {url}"
             sys.stdout.write(end_message + "\n")
             sys.stdout.flush()
 
@@ -510,7 +506,7 @@ class _ExportIntent(_Intent):
         try:
             for experiment_id in exporter.export():
                 num_experiments += 1
-                print("Downloaded experiment %s" % experiment_id)
+                print(f"Downloaded experiment {experiment_id}")
         except exporter_lib.GrpcTimeoutException as e:
             print(
                 "\nUploader has failed because of a timeout error.  Please reach "
@@ -556,20 +552,19 @@ def _get_intent(flags, experiment_url_callback=None):
                 "Must specify directory to upload via `--logdir`."
             )
     if cmd == flags_parser.SUBCOMMAND_KEY_UPDATE_METADATA:
-        if flags.experiment_id:
-            if flags.name is not None or flags.description is not None:
-                return _UpdateMetadataIntent(
-                    flags.experiment_id,
-                    name=flags.name,
-                    description=flags.description,
-                )
-            else:
-                raise base_plugin.FlagsError(
-                    "Must specify either `--name` or `--description`."
-                )
-        else:
+        if not flags.experiment_id:
             raise base_plugin.FlagsError(
                 "Must specify experiment to modify via `--experiment_id`."
+            )
+        if flags.name is not None or flags.description is not None:
+            return _UpdateMetadataIntent(
+                flags.experiment_id,
+                name=flags.name,
+                description=flags.description,
+            )
+        else:
+            raise base_plugin.FlagsError(
+                "Must specify either `--name` or `--description`."
             )
     elif cmd == flags_parser.SUBCOMMAND_KEY_DELETE:
         if flags.experiment_id:
@@ -621,12 +616,10 @@ def _handle_server_info(info):
         sys.stderr.write("Warning [from server]: %s\n" % compat.details)
         sys.stderr.flush()
     elif compat.verdict == server_info_pb2.VERDICT_ERROR:
-        _die("Error [from server]: %s" % compat.details)
-    else:
-        # OK or unknown; assume OK.
-        if compat.details:
-            sys.stderr.write("%s\n" % compat.details)
-            sys.stderr.flush()
+        _die(f"Error [from server]: {compat.details}")
+    elif compat.details:
+        sys.stderr.write("%s\n" % compat.details)
+        sys.stderr.flush()
 
 
 def _die(message):

@@ -37,14 +37,13 @@ def create_summary_metadata(
         version=PROTO_VERSION,
         converted_to_tensor=converted_to_tensor,
     )
-    metadata = summary_pb2.SummaryMetadata(
+    return summary_pb2.SummaryMetadata(
         display_name=display_name,
         summary_description=description,
         plugin_data=summary_pb2.SummaryMetadata.PluginData(
             plugin_name=PLUGIN_NAME, content=content.SerializeToString()
         ),
     )
-    return metadata
 
 
 def parse_plugin_metadata(content):
@@ -59,8 +58,4 @@ def parse_plugin_metadata(content):
     """
     if not isinstance(content, bytes):
         raise TypeError("Content type must be bytes")
-    result = plugin_data_pb2.ImagePluginData.FromString(content)
-    if result.version == 0:
-        return result
-    # No other versions known at this time, so no migrations to do.
-    return result
+    return plugin_data_pb2.ImagePluginData.FromString(content)

@@ -87,11 +87,9 @@ def pb(name, data, display_name=None, description=None):
 
     data = np.array(data)
     if data.shape != ():
-        raise ValueError(
-            "Expected scalar shape for data, saw shape: %s." % data.shape
-        )
+        raise ValueError(f"Expected scalar shape for data, saw shape: {data.shape}.")
     if data.dtype.kind not in ("b", "i", "u", "f"):  # bool, int, uint, float
-        raise ValueError("Cast %s to float is not supported" % data.dtype.name)
+        raise ValueError(f"Cast {data.dtype.name} to float is not supported")
     tensor = tf.make_tensor_proto(data.astype(np.float32))
 
     if display_name is None:
@@ -104,7 +102,7 @@ def pb(name, data, display_name=None, description=None):
     )
     summary = tf.Summary()
     summary.value.add(
-        tag="%s/scalar_summary" % name,
+        tag=f"{name}/scalar_summary",
         metadata=tf_summary_metadata,
         tensor=tensor,
     )

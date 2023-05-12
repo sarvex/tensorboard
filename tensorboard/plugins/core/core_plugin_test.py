@@ -300,7 +300,7 @@ class CorePluginTest(tf.test.TestCase):
                 for candidate_name in fake_wall_times
                 if run_name.endswith(candidate_name)
             ]
-            self.assertEqual(len(matches), 1, "%s (%s)" % (matches, run_name))
+            self.assertEqual(len(matches), 1, f"{matches} ({run_name})")
             wall_time = fake_wall_times[matches[0]]
             if wall_time is None:
                 raise ValueError("No event timestamp could be found")
@@ -381,10 +381,7 @@ class CorePluginPathPrefixTest(tf.test.TestCase):
         self.assertStartsWith(response.headers.get("Content-Type"), "text/html")
         html = response.get_data()
 
-        expected_meta = (
-            '<!doctype html><meta name="tb-relative-root" content="%s">'
-            % expected_tb_relative_root
-        ).encode()
+        expected_meta = f'<!doctype html><meta name="tb-relative-root" content="{expected_tb_relative_root}">'.encode()
         self.assertEqual(
             html,
             expected_meta + FAKE_INDEX_HTML,

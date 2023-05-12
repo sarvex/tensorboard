@@ -109,13 +109,12 @@ class PrCurvesPluginTest(tf.test.TestCase):
         Returns:
           The correct description given a standard deviation value.
         """
-        description = (
+        return (
             "<p>The probabilities used to create this PR curve are "
             "generated from a normal distribution. Its standard "
             "deviation is initially %d and decreases"
             " over time.</p>"
         ) % standard_deviation
-        return description
 
     def testRoutesProvided(self):
         """Tests that the plugin offers the correct routes."""

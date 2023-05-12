@@ -41,10 +41,10 @@ def contains_npmi_metric(metrics):
     Returns:
         Whether the header contains a metric that can be used by the plugin.
     """
-    for metric in metrics:
-        if metric.startswith("nPMI@") or metric.startswith("nPMI_diff@"):
-            return True
-    return False
+    return any(
+        metric.startswith("nPMI@") or metric.startswith("nPMI_diff@")
+        for metric in metrics
+    )
 
 
 def convert_file(file_path):
@@ -82,13 +82,11 @@ def convert_file(file_path):
         summary.npmi_annotations(tensor_annotations, 1)
         summary.npmi_metrics(tensor_metrics, 1)
     writer.close()
-    print(
-        "Successfuly saved converted output to %s" % os.path.dirname(file_path)
-    )
+    print(f"Successfuly saved converted output to {os.path.dirname(file_path)}")
 
 
 def main(unused_argv):
-    print("Converting file: %s" % FLAGS.csv_path)
+    print(f"Converting file: {FLAGS.csv_path}")
     convert_file(FLAGS.csv_path)
 
 

@@ -52,18 +52,15 @@ def setup_run(logdir, run_name):
 def setup_all(logdir, verbose=False):
     for run in ["run_1", "run_2"]:
         if verbose:
-            print("--- Setting up Run: %s" % run)
+            print(f"--- Setting up Run: {run}")
         setup_run(logdir, run)
 
 
 def main(unused_argv):
-    print("Saving output to %s." % LOGDIR)
-    print(
-        "To view results in your browser, run `tensorboard --logdir %s`"
-        % LOGDIR
-    )
+    print(f"Saving output to {LOGDIR}.")
+    print(f"To view results in your browser, run `tensorboard --logdir {LOGDIR}`")
     setup_all(LOGDIR, verbose=True)
-    print("Done. Output saved to %s." % LOGDIR)
+    print(f"Done. Output saved to {LOGDIR}.")
 
 
 if __name__ == "__main__":

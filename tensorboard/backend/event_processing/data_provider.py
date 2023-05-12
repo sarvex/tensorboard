@@ -73,9 +73,7 @@ class MultiplexerDataProvider(provider.DataProvider):
         if runs is not None and run not in runs:
             return False
         tags = run_tag_filter.tags
-        if tags is not None and tag not in tags:
-            return False
-        return True
+        return tags is None or tag in tags
 
     def _get_first_event_timestamp(self, run_name):
         try:
@@ -411,7 +409,7 @@ def _decode_blob_key(key):
       A tuple of `(experiment_id, plugin_name, run, tag, step, index)`, with types
       matching the arguments of `_encode_blob_key`.
     """
-    decoded = base64.urlsafe_b64decode(key + "==")  # pad past a multiple of 4.
+    decoded = base64.urlsafe_b64decode(f"{key}==")
     stringified = decoded.decode("ascii")
     (experiment_id, plugin_name, run, tag, step, index) = json.loads(
         stringified

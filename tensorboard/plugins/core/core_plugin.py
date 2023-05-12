@@ -90,7 +90,7 @@ class CorePlugin(base_plugin.TBPlugin):
             "/histograms": self._redirect_to_index,
             "/images": self._redirect_to_index,
         }
-        apps.update(self.get_resource_apps())
+        apps |= self.get_resource_apps()
         return apps
 
     def get_resource_apps(self):
@@ -104,7 +104,7 @@ class CorePlugin(base_plugin.TBPlugin):
                     content = zip_.read(path)
                     # Opt out of gzipping index.html
                     if path == "index.html":
-                        apps["/" + path] = functools.partial(
+                        apps[f"/{path}"] = functools.partial(
                             self._serve_index, content
                         )
                         continue
@@ -113,7 +113,7 @@ class CorePlugin(base_plugin.TBPlugin):
                     wsgi_app = functools.partial(
                         self._serve_asset, path, gzipped_asset_bytes
                     )
-                    apps["/" + path] = wsgi_app
+                    apps[f"/{path}"] = wsgi_app
         apps["/"] = apps["/index.html"]
         return apps
 
@@ -160,8 +160,7 @@ class CorePlugin(base_plugin.TBPlugin):
             else "."
         )
         meta_header = (
-            '<!doctype html><meta name="tb-relative-root" content="%s/">'
-            % relpath
+            f'<!doctype html><meta name="tb-relative-root" content="{relpath}/">'
         )
         content = meta_header.encode("utf-8") + index_asset_bytes
         # By passing content_encoding, disallow gzipping. Bloats the content
@@ -213,9 +212,11 @@ class CorePlugin(base_plugin.TBPlugin):
                 return x
             if isinstance(x, (list, tuple)):
                 return [go(v) for v in x]
-            if isinstance(x, dict):
-                return {str(k): go(v) for (k, v) in x.items()}
-            return str(x)
+            return (
+                {str(k): go(v) for (k, v) in x.items()}
+                if isinstance(x, dict)
+                else str(x)
+            )
 
         return go(vars(self._flags))
 
@@ -719,6 +720,6 @@ def _nonnegative_float(v):
         v = float(v)
     except ValueError:
         raise argparse.ArgumentTypeError("invalid float: %r" % v)
-    if not (v >= 0):  # no NaNs, please
+    if v < 0:  # no NaNs, please
         raise argparse.ArgumentTypeError("must be non-negative: %r" % v)
     return v

@@ -89,7 +89,7 @@ def _alert_to_json(alert):
             "graph_execution_trace_index": alert.graph_execution_trace_index,
         }
     else:
-        raise TypeError("Unrecognized alert subtype: %s" % type(alert))
+        raise TypeError(f"Unrecognized alert subtype: {type(alert)}")
 
 
 def parse_tensor_name(tensor_name):
@@ -160,17 +160,12 @@ class DebuggerV2EventMultiplexer(object):
                     self._reader = debug_events_reader.DebugDataReader(
                         self._logdir
                     )
-                except AttributeError:
+                except (AttributeError, ValueError):
                     # Gracefully fail for users without the required API changes to
                     # debug_events_reader.DebugDataReader introduced in
                     # TF 2.1.0.dev20200103. This should be safe to remove when
                     # TF 2.2 is released.
                     return
-                except ValueError:
-                    # When no DebugEvent file set is found in the logdir, a
-                    # `ValueError` is thrown.
-                    return
-
                 self._monitors = [
                     debug_events_monitors.InfNanMonitor(
                         self._reader, limit=DEFAULT_PER_TYPE_ALERT_LIMIT
@@ -209,8 +204,7 @@ class DebuggerV2EventMultiplexer(object):
             raise ValueError("No tfdbg2 runs exists.")
         if run != DEFAULT_DEBUGGER_RUN_NAME:
             raise ValueError(
-                "Expected run name to be %s, but got %s"
-                % (DEFAULT_DEBUGGER_RUN_NAME, run)
+                f"Expected run name to be {DEFAULT_DEBUGGER_RUN_NAME}, but got {run}"
             )
         return self._reader.starting_wall_time()
 
@@ -300,8 +294,8 @@ class DebuggerV2EventMultiplexer(object):
             # TODO(cais): This should generate a 400 response instead.
             return None
         alerts = []
-        alerts_breakdown = dict()
-        alerts_by_type = dict()
+        alerts_breakdown = {}
+        alerts_by_type = {}
         for monitor in self._monitors:
             monitor_alerts = monitor.alerts()
             if not monitor_alerts:
@@ -319,8 +313,7 @@ class DebuggerV2EventMultiplexer(object):
         if alert_type_filter is not None:
             if alert_type_filter not in alerts_breakdown:
                 raise errors.InvalidArgumentError(
-                    "Filtering of alerts failed: alert type %s does not exist"
-                    % alert_type_filter
+                    f"Filtering of alerts failed: alert type {alert_type_filter} does not exist"
                 )
             alerts = alerts_by_type[alert_type_filter]
         end = self._checkBeginEndIndices(begin, end, len(alerts))
@@ -477,9 +470,7 @@ class DebuggerV2EventMultiplexer(object):
         try:
             graph = self._reader.graph_by_id(graph_id)
         except KeyError:
-            raise errors.NotFoundError(
-                'There is no graph with ID "%s"' % graph_id
-            )
+            raise errors.NotFoundError(f'There is no graph with ID "{graph_id}"')
         return graph.to_json()
 
     def GraphOpInfo(self, run, graph_id, op_name):
@@ -505,15 +496,12 @@ class DebuggerV2EventMultiplexer(object):
         try:
             graph = self._reader.graph_by_id(graph_id)
         except KeyError:
-            raise errors.NotFoundError(
-                'There is no graph with ID "%s"' % graph_id
-            )
+            raise errors.NotFoundError(f'There is no graph with ID "{graph_id}"')
         try:
             op_creation_digest = graph.get_op_creation_digest(op_name)
         except KeyError:
             raise errors.NotFoundError(
-                'There is no op named "%s" in graph with ID "%s"'
-                % (op_name, graph_id)
+                f'There is no op named "{op_name}" in graph with ID "{graph_id}"'
             )
         data_object = self._opCreationDigestToDataObject(
             op_creation_digest, graph
@@ -594,9 +582,7 @@ class DebuggerV2EventMultiplexer(object):
 
     def SourceFileList(self, run):
         runs = self.Runs()
-        if run not in runs:
-            return None
-        return self._reader.source_file_list()
+        return None if run not in runs else self._reader.source_file_list()
 
     def SourceLines(self, run, index):
         runs = self.Runs()
@@ -621,12 +607,10 @@ class DebuggerV2EventMultiplexer(object):
         stack_frames = []
         for stack_frame_id in stack_frame_ids:
             if stack_frame_id not in self._reader._stack_frame_by_id:
-                raise errors.NotFoundError(
-                    "Cannot find stack frame with ID %s" % stack_frame_id
-                )
+                raise errors.NotFoundError(f"Cannot find stack frame with ID {stack_frame_id}")
             # TODO(cais): Use public method (`stack_frame_by_id()`) when
             # available.
             # pylint: disable=protected-access
             stack_frames.append(self._reader._stack_frame_by_id[stack_frame_id])
-            # pylint: enable=protected-access
+                # pylint: enable=protected-access
         return {"stack_frames": stack_frames}

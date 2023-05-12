@@ -140,7 +140,7 @@ def histogram_v2(name, data, step=None, buckets=None, description=None):
         # re-enter it. It also prevents auto-incrementing of the scope name.
         # This is legacy graph mode behavior, undocumented except in comments:
         # https://github.com/tensorflow/tensorflow/blob/v2.5.0/tensorflow/python/framework/ops.py#L6664-L6666
-        scope_to_reenter = current_scope + "/" if current_scope else ""
+        scope_to_reenter = f"{current_scope}/" if current_scope else ""
         name_scope_cms.append(tf.name_scope(scope_to_reenter))
 
     def histogram_summary(data, buckets, histogram_metadata, step):
@@ -286,9 +286,6 @@ def histogram_pb(tag, data, buckets=None, description=None):
         if range_ == 0:
             left_edges = right_edges = np.array([min_] * bucket_count)
             bucket_counts = np.array([0] * (bucket_count - 1) + [data.size])
-            histogram_buckets = np.array(
-                [left_edges, right_edges, bucket_counts]
-            ).transpose()
         else:
             bucket_width = range_ / bucket_count
             offsets = data - min_
@@ -305,9 +302,9 @@ def histogram_pb(tag, data, buckets=None, description=None):
             edges = np.linspace(min_, max_, bucket_count + 1)
             left_edges = edges[:-1]
             right_edges = edges[1:]
-            histogram_buckets = np.array(
-                [left_edges, right_edges, bucket_counts]
-            ).transpose()
+        histogram_buckets = np.array(
+            [left_edges, right_edges, bucket_counts]
+        ).transpose()
     tensor = tensor_util.make_tensor_proto(histogram_buckets, dtype=np.float64)
 
     summary_metadata = metadata.create_summary_metadata(

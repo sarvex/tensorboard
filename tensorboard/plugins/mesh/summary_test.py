@@ -40,9 +40,9 @@ class MeshSummaryTest(tf.test.TestCase):
     def verify_proto(self, proto, name):
         """Validates proto."""
         self.assertEqual(3, len(proto.value))
-        self.assertEqual("%s_VERTEX" % name, proto.value[0].tag)
-        self.assertEqual("%s_FACE" % name, proto.value[1].tag)
-        self.assertEqual("%s_COLOR" % name, proto.value[2].tag)
+        self.assertEqual(f"{name}_VERTEX", proto.value[0].tag)
+        self.assertEqual(f"{name}_FACE", proto.value[1].tag)
+        self.assertEqual(f"{name}_COLOR", proto.value[2].tag)
 
         self.assertEqual(14, self.get_components(proto.value[0]))
         self.assertEqual(14, self.get_components(proto.value[1]))
@@ -69,7 +69,7 @@ class MeshSummaryTest(tf.test.TestCase):
             )
             with self.test_session():
                 proto = self.pb_via_op(tensor_summary)
-                self.assertEqual("%s_VERTEX" % name, proto.value[0].tag)
+                self.assertEqual(f"{name}_VERTEX", proto.value[0].tag)
                 self.assertEqual(
                     metadata.PLUGIN_NAME,
                     proto.value[0].metadata.plugin_data.plugin_name,

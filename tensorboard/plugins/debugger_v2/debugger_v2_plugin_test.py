@@ -139,9 +139,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
 
     def _getExactlyOneRun(self):
         """Assert there is exactly one DebuggerV2 run and get its ID."""
-        run_listing = json.loads(
-            self.server.get(_ROUTE_PREFIX + "/runs").get_data()
-        )
+        run_listing = json.loads(self.server.get(f"{_ROUTE_PREFIX}/runs").get_data())
         self.assertLen(run_listing, 1)
         return list(run_listing.keys())[0]
 
@@ -166,16 +164,16 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         self.assertEqual(list(results), [False] * 4)
 
     def testServeRunsWithoutExistingRuns(self):
-        response = self.server.get(_ROUTE_PREFIX + "/runs")
+        response = self.server.get(f"{_ROUTE_PREFIX}/runs")
         self.assertEqual(200, response.status_code)
         self.assertEqual(
             "application/json", response.headers.get("content-type")
         )
-        self.assertEqual(json.loads(response.get_data()), dict())
+        self.assertEqual(json.loads(response.get_data()), {})
 
     def testServeRunsWithExistingRuns(self):
         _generate_tfdbg_v2_data(self.logdir)
-        response = self.server.get(_ROUTE_PREFIX + "/runs")
+        response = self.server.get(f"{_ROUTE_PREFIX}/runs")
         self.assertEqual(200, response.status_code)
         self.assertEqual(
             "application/json", response.headers.get("content-type")
@@ -190,7 +188,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         responses = collections.deque()
 
         def get_runs():
-            responses.append(self.server.get(_ROUTE_PREFIX + "/runs"))
+            responses.append(self.server.get(f"{_ROUTE_PREFIX}/runs"))
 
         threads = [threading.Thread(target=get_runs) for _ in range(4)]
         for thread in threads:
@@ -204,14 +202,14 @@ class DebuggerV2PluginTest(tf.test.TestCase):
             self.assertEqual(
                 "application/json", response.headers.get("content-type")
             )
-            self.assertEqual(json.loads(response.get_data()), dict())
+            self.assertEqual(json.loads(response.get_data()), {})
 
     def testConcurrentServeRunsWithExistingRuns(self):
         _generate_tfdbg_v2_data(self.logdir)
         responses = collections.deque()
 
         def get_runs():
-            responses.append(self.server.get(_ROUTE_PREFIX + "/runs"))
+            responses.append(self.server.get(f"{_ROUTE_PREFIX}/runs"))
 
         threads = [threading.Thread(target=get_runs) for _ in range(4)]
         for thread in threads:
@@ -234,9 +232,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
     def testAlertsWhenNoAlertExists(self):
         _generate_tfdbg_v2_data(self.logdir)
         run = self._getExactlyOneRun()
-        response = self.server.get(
-            _ROUTE_PREFIX + "/alerts?run=%s&begin=0&end=0" % run
-        )
+        response = self.server.get(f"{_ROUTE_PREFIX}/alerts?run={run}&begin=0&end=0")
         self.assertEqual(200, response.status_code)
         self.assertEqual(
             "application/json", response.headers.get("content-type")
@@ -260,9 +256,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
             self.logdir, tensor_debug_mode="CURT_HEALTH", logarithm_times=4
         )
         run = self._getExactlyOneRun()
-        response = self.server.get(
-            _ROUTE_PREFIX + "/alerts?run=%s&begin=0&end=0" % run
-        )
+        response = self.server.get(f"{_ROUTE_PREFIX}/alerts?run={run}&begin=0&end=0")
         self.assertEqual(200, response.status_code)
         self.assertEqual(
             "application/json", response.headers.get("content-type")
@@ -288,9 +282,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
             self.logdir, tensor_debug_mode="CONCISE_HEALTH", logarithm_times=4
         )
         run = self._getExactlyOneRun()
-        response = self.server.get(
-            _ROUTE_PREFIX + "/alerts?run=%s&begin=0&end=3" % run
-        )
+        response = self.server.get(f"{_ROUTE_PREFIX}/alerts?run={run}&begin=0&end=3")
         self.assertEqual(200, response.status_code)
         self.assertEqual(
             "application/json", response.headers.get("content-type")
@@ -353,9 +345,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         run = self._getExactlyOneRun()
 
         # begin = 0; end = 5
-        response = self.server.get(
-            _ROUTE_PREFIX + "/alerts?run=%s&begin=0&end=5" % run
-        )
+        response = self.server.get(f"{_ROUTE_PREFIX}/alerts?run={run}&begin=0&end=5")
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
             "application/json", response.headers.get("content-type")
@@ -366,9 +356,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         )
 
         # begin = -1; end = 2
-        response = self.server.get(
-            _ROUTE_PREFIX + "/alerts?run=%s&begin=-1&end=2" % run
-        )
+        response = self.server.get(f"{_ROUTE_PREFIX}/alerts?run={run}&begin=-1&end=2")
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
             "application/json", response.headers.get("content-type")
@@ -379,9 +367,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         )
 
         # begin = 2; end = 1
-        response = self.server.get(
-            _ROUTE_PREFIX + "/alerts?run=%s&begin=2&end=1" % run
-        )
+        response = self.server.get(f"{_ROUTE_PREFIX}/alerts?run={run}&begin=2&end=1")
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
             "application/json", response.headers.get("content-type")
@@ -400,8 +386,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         )
         run = self._getExactlyOneRun()
         response = self.server.get(
-            _ROUTE_PREFIX
-            + "/alerts?run=%s&alert_type=InfNanAlert&begin=1&end=-1" % run
+            f"{_ROUTE_PREFIX}/alerts?run={run}&alert_type=InfNanAlert&begin=1&end=-1"
         )
         self.assertEqual(200, response.status_code)
         self.assertEqual(
@@ -452,8 +437,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
 
         # begin = 0; end = 5
         response = self.server.get(
-            _ROUTE_PREFIX
-            + "/alerts?alert_type=InfNanAlert&run=%s&begin=0&end=5" % run
+            f"{_ROUTE_PREFIX}/alerts?alert_type=InfNanAlert&run={run}&begin=0&end=5"
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
@@ -466,8 +450,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
 
         # begin = -1; end = 2
         response = self.server.get(
-            _ROUTE_PREFIX
-            + "/alerts?alert_type=InfNanAlert&run=%s&begin=-1&end=2" % run
+            f"{_ROUTE_PREFIX}/alerts?alert_type=InfNanAlert&run={run}&begin=-1&end=2"
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
@@ -480,8 +463,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
 
         # begin = 2; end = 1
         response = self.server.get(
-            _ROUTE_PREFIX
-            + "/alerts?alert_type=InfNanAlert&run=%s&begin=2&end=1" % run
+            f"{_ROUTE_PREFIX}/alerts?alert_type=InfNanAlert&run={run}&begin=2&end=1"
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
@@ -502,8 +484,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         run = self._getExactlyOneRun()
 
         response = self.server.get(
-            _ROUTE_PREFIX
-            + "/alerts?alert_type=NonexistentAlert&run=%s&begin=0&end=-1" % run
+            f"{_ROUTE_PREFIX}/alerts?alert_type=NonexistentAlert&run={run}&begin=0&end=-1"
         )
 
         self.assertEqual(response.status_code, 400)
@@ -523,7 +504,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         _generate_tfdbg_v2_data(self.logdir)
         run = self._getExactlyOneRun()
         response = self.server.get(
-            _ROUTE_PREFIX + "/execution/digests?run=%s&begin=0&end=0" % run
+            f"{_ROUTE_PREFIX}/execution/digests?run={run}&begin=0&end=0"
         )
         self.assertEqual(200, response.status_code)
         self.assertEqual(
@@ -544,7 +525,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         _generate_tfdbg_v2_data(self.logdir)
         run = self._getExactlyOneRun()
         response = self.server.get(
-            _ROUTE_PREFIX + "/execution/digests?run=%s&begin=0&end=3" % run
+            f"{_ROUTE_PREFIX}/execution/digests?run={run}&begin=0&end=3"
         )
         self.assertEqual(200, response.status_code)
         self.assertEqual(
@@ -570,7 +551,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         _generate_tfdbg_v2_data(self.logdir)
         run = self._getExactlyOneRun()
         response = self.server.get(
-            _ROUTE_PREFIX + "/execution/digests?run=%s&begin=0" % run
+            f"{_ROUTE_PREFIX}/execution/digests?run={run}&begin=0"
         )
         self.assertEqual(200, response.status_code)
         self.assertEqual(
@@ -596,7 +577,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         _generate_tfdbg_v2_data(self.logdir)
         run = self._getExactlyOneRun()
         response = self.server.get(
-            _ROUTE_PREFIX + "/execution/digests?run=%s&begin=0&end=2" % run
+            f"{_ROUTE_PREFIX}/execution/digests?run={run}&begin=0&end=2"
         )
         self.assertEqual(200, response.status_code)
         self.assertEqual(
@@ -624,7 +605,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
 
         # begin = 0; end = 4
         response = self.server.get(
-            _ROUTE_PREFIX + "/execution/digests?run=%s&begin=0&end=4" % run
+            f"{_ROUTE_PREFIX}/execution/digests?run={run}&begin=0&end=4"
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
@@ -637,7 +618,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
 
         # begin = -1; end = 2
         response = self.server.get(
-            _ROUTE_PREFIX + "/execution/digests?run=%s&begin=-1&end=2" % run
+            f"{_ROUTE_PREFIX}/execution/digests?run={run}&begin=-1&end=2"
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
@@ -650,7 +631,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
 
         # begin = 2; end = 1
         response = self.server.get(
-            _ROUTE_PREFIX + "/execution/digests?run=%s&begin=2&end=1" % run
+            f"{_ROUTE_PREFIX}/execution/digests?run={run}&begin=2&end=1"
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
@@ -683,7 +664,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         _generate_tfdbg_v2_data(self.logdir, tensor_debug_mode="CONCISE_HEALTH")
         run = self._getExactlyOneRun()
         response = self.server.get(
-            _ROUTE_PREFIX + "/execution/data?run=%s&begin=0&end=1" % run
+            f"{_ROUTE_PREFIX}/execution/data?run={run}&begin=0&end=1"
         )
         self.assertEqual(200, response.status_code)
         self.assertEqual(
@@ -712,7 +693,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         _generate_tfdbg_v2_data(self.logdir, tensor_debug_mode="CURT_HEALTH")
         run = self._getExactlyOneRun()
         response = self.server.get(
-            _ROUTE_PREFIX + "/execution/data?run=%s&begin=0&end=-1" % run
+            f"{_ROUTE_PREFIX}/execution/data?run={run}&begin=0&end=-1"
         )
         self.assertEqual(200, response.status_code)
         self.assertEqual(
@@ -752,7 +733,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
 
         # begin = 0; end = 4
         response = self.server.get(
-            _ROUTE_PREFIX + "/execution/data?run=%s&begin=0&end=4" % run
+            f"{_ROUTE_PREFIX}/execution/data?run={run}&begin=0&end=4"
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
@@ -765,7 +746,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
 
         # begin = -1; end = 2
         response = self.server.get(
-            _ROUTE_PREFIX + "/execution/data?run=%s&begin=-1&end=2" % run
+            f"{_ROUTE_PREFIX}/execution/data?run={run}&begin=-1&end=2"
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
@@ -778,7 +759,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
 
         # begin = 2; end = 1
         response = self.server.get(
-            _ROUTE_PREFIX + "/execution/data?run=%s&begin=2&end=1" % run
+            f"{_ROUTE_PREFIX}/execution/data?run={run}&begin=2&end=1"
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
@@ -796,8 +777,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         _generate_tfdbg_v2_data(self.logdir)
         run = self._getExactlyOneRun()
         response = self.server.get(
-            _ROUTE_PREFIX
-            + "/graph_execution/digests?run=%s&begin=0&end=4" % run
+            f"{_ROUTE_PREFIX}/graph_execution/digests?run={run}&begin=0&end=4"
         )
         self.assertEqual(200, response.status_code)
         self.assertEqual(
@@ -845,7 +825,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         _generate_tfdbg_v2_data(self.logdir)
         run = self._getExactlyOneRun()
         response = self.server.get(
-            _ROUTE_PREFIX + "/graph_execution/digests?run=%s" % run
+            f"{_ROUTE_PREFIX}/graph_execution/digests?run={run}"
         )
         self.assertEqual(200, response.status_code)
         self.assertEqual(
@@ -871,8 +851,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
 
         # begin = 0; end = 300
         response = self.server.get(
-            _ROUTE_PREFIX
-            + "/graph_execution/digests?run=%s&begin=0&end=300" % run
+            f"{_ROUTE_PREFIX}/graph_execution/digests?run={run}&begin=0&end=300"
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
@@ -885,8 +864,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
 
         # begin = -1; end = 2
         response = self.server.get(
-            _ROUTE_PREFIX
-            + "/graph_execution/digests?run=%s&begin=-1&end=2" % run
+            f"{_ROUTE_PREFIX}/graph_execution/digests?run={run}&begin=-1&end=2"
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
@@ -899,8 +877,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
 
         # begin = 2; end = 1
         response = self.server.get(
-            _ROUTE_PREFIX
-            + "/graph_execution/digests?run=%s&begin=2&end=1" % run
+            f"{_ROUTE_PREFIX}/graph_execution/digests?run={run}&begin=2&end=1"
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
@@ -918,7 +895,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         _generate_tfdbg_v2_data(self.logdir, tensor_debug_mode="CONCISE_HEALTH")
         run = self._getExactlyOneRun()
         response = self.server.get(
-            _ROUTE_PREFIX + "/graph_execution/data?run=%s&begin=0&end=1" % run
+            f"{_ROUTE_PREFIX}/graph_execution/data?run={run}&begin=0&end=1"
         )
         self.assertEqual(200, response.status_code)
         self.assertEqual(
@@ -945,7 +922,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         _generate_tfdbg_v2_data(self.logdir, tensor_debug_mode="CONCISE_HEALTH")
         run = self._getExactlyOneRun()
         response = self.server.get(
-            _ROUTE_PREFIX + "/graph_execution/data?run=%s&begin=0&end=3" % run
+            f"{_ROUTE_PREFIX}/graph_execution/data?run={run}&begin=0&end=3"
         )
         self.assertEqual(200, response.status_code)
         self.assertEqual(
@@ -1002,7 +979,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         # traces.
         # begin = 0; end = 220
         response = self.server.get(
-            _ROUTE_PREFIX + "/graph_execution/data?run=%s&begin=0&end=220" % run
+            f"{_ROUTE_PREFIX}/graph_execution/data?run={run}&begin=0&end=220"
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
@@ -1015,7 +992,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
 
         # begin = -1; end = 2
         response = self.server.get(
-            _ROUTE_PREFIX + "/graph_execution/data?run=%s&begin=-1&end=2" % run
+            f"{_ROUTE_PREFIX}/graph_execution/data?run={run}&begin=-1&end=2"
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
@@ -1028,7 +1005,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
 
         # begin = 2; end = 1
         response = self.server.get(
-            _ROUTE_PREFIX + "/graph_execution/data?run=%s&begin=2&end=1" % run
+            f"{_ROUTE_PREFIX}/graph_execution/data?run={run}&begin=2&end=1"
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
@@ -1048,7 +1025,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         run = self._getExactlyOneRun()
         # First, look up the graph_id of the 1st AddV2 op.
         response = self.server.get(
-            _ROUTE_PREFIX + "/graph_execution/digests?run=%s" % run
+            f"{_ROUTE_PREFIX}/graph_execution/digests?run={run}"
         )
         data = json.loads(response.get_data())
         digests = data["graph_execution_digests"]
@@ -1060,8 +1037,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         # This is the graph that contains the AddV2 op. It corresponds
         # to the function "unstack_and_sum".
         response = self.server.get(
-            _ROUTE_PREFIX
-            + "/graphs/graph_info?run=%s&graph_id=%s" % (run, graph_id)
+            f"{_ROUTE_PREFIX}/graphs/graph_info?run={run}&graph_id={graph_id}"
         )
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.get_data())
@@ -1076,8 +1052,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         # Query the /graphs/graph_info route for the outer graph.
         # This corresponds to the function "my_function"
         response = self.server.get(
-            _ROUTE_PREFIX
-            + "/graphs/graph_info?run=%s&graph_id=%s" % (run, outer_graph_id)
+            f"{_ROUTE_PREFIX}/graphs/graph_info?run={run}&graph_id={outer_graph_id}"
         )
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.get_data())
@@ -1093,9 +1068,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         # Query the /graphs/graph_info route for the outermost graph.
         # This is an unnamed outermost graph.
         response = self.server.get(
-            _ROUTE_PREFIX
-            + "/graphs/graph_info?run=%s&graph_id=%s"
-            % (run, outermost_graph_id)
+            f"{_ROUTE_PREFIX}/graphs/graph_info?run={run}&graph_id={outermost_graph_id}"
         )
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.get_data())
@@ -1109,9 +1082,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         _generate_tfdbg_v2_data(self.logdir)
         run = self._getExactlyOneRun()
         response = self.server.get(
-            _ROUTE_PREFIX
-            + "/graphs/graph_info?run=%s&graph_id=%s"
-            % (run, "nonsensical-graph-id")
+            f"{_ROUTE_PREFIX}/graphs/graph_info?run={run}&graph_id=nonsensical-graph-id"
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
@@ -1127,7 +1098,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         run = self._getExactlyOneRun()
         # First, look up the graph_id and name of the 1st AddV2 op.
         response = self.server.get(
-            _ROUTE_PREFIX + "/graph_execution/digests?run=%s" % run
+            f"{_ROUTE_PREFIX}/graph_execution/digests?run={run}"
         )
         data = json.loads(response.get_data())
         digests = data["graph_execution_digests"]
@@ -1137,9 +1108,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         op_name = digests[op_index]["op_name"]
         # Actually query the /graphs/op_info route.
         response = self.server.get(
-            _ROUTE_PREFIX
-            + "/graphs/op_info?run=%s&graph_id=%s&op_name=%s"
-            % (run, graph_id, op_name)
+            f"{_ROUTE_PREFIX}/graphs/op_info?run={run}&graph_id={graph_id}&op_name={op_name}"
         )
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.get_data())
@@ -1239,7 +1208,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         # unstack_and_sum() graph. The Identity op marks the return value of
         # the tf.function and hence has no consumer.
         response = self.server.get(
-            _ROUTE_PREFIX + "/graph_execution/digests?run=%s" % run
+            f"{_ROUTE_PREFIX}/graph_execution/digests?run={run}"
         )
         data = json.loads(response.get_data())
         digests = data["graph_execution_digests"]
@@ -1248,9 +1217,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         graph_id = digests[add_index_0]["graph_id"]
         # Actually query the /graphs/op_info route.
         response = self.server.get(
-            _ROUTE_PREFIX
-            + "/graphs/op_info?run=%s&graph_id=%s&op_name=%s"
-            % (run, graph_id, "Identity")
+            f"{_ROUTE_PREFIX}/graphs/op_info?run={run}&graph_id={graph_id}&op_name=Identity"
         )
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.get_data())
@@ -1286,7 +1253,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         # First, look up the graph_id and name of the Placeholder op in the
         # same graph as the Unstack op. This Placeholder op has no inputs.
         response = self.server.get(
-            _ROUTE_PREFIX + "/graph_execution/digests?run=%s" % run
+            f"{_ROUTE_PREFIX}/graph_execution/digests?run={run}"
         )
         data = json.loads(response.get_data())
         digests = data["graph_execution_digests"]
@@ -1301,9 +1268,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         op_name = digests[placeholder_op_index]["op_name"]
         # Actually query the /graphs/op_info route.
         response = self.server.get(
-            _ROUTE_PREFIX
-            + "/graphs/op_info?run=%s&graph_id=%s&op_name=%s"
-            % (run, graph_id, op_name)
+            f"{_ROUTE_PREFIX}/graphs/op_info?run={run}&graph_id={graph_id}&op_name={op_name}"
         )
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.get_data())
@@ -1342,7 +1307,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         run = self._getExactlyOneRun()
         # First, look up the graph_id and name of the 1st AddV2 op.
         response = self.server.get(
-            _ROUTE_PREFIX + "/graph_execution/digests?run=%s" % run
+            f"{_ROUTE_PREFIX}/graph_execution/digests?run={run}"
         )
         data = json.loads(response.get_data())
         digests = data["graph_execution_digests"]
@@ -1372,13 +1337,11 @@ class DebuggerV2PluginTest(tf.test.TestCase):
                 raise KeyError()
 
         with mock.patch.object(
-            graph, "get_op_creation_digest", fake_get_op_creation_digest
-        ):
+                graph, "get_op_creation_digest", fake_get_op_creation_digest
+            ):
             # Actually query the /graphs/op_info route.
             response = self.server.get(
-                _ROUTE_PREFIX
-                + "/graphs/op_info?run=%s&graph_id=%s&op_name=%s"
-                % (run, graph_id, add_v2_op_name)
+                f"{_ROUTE_PREFIX}/graphs/op_info?run={run}&graph_id={graph_id}&op_name={add_v2_op_name}"
             )
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.get_data())
@@ -1410,9 +1373,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         run = self._getExactlyOneRun()
         # Query the /graphs/op_info route with an invalid graph_id.
         response = self.server.get(
-            _ROUTE_PREFIX
-            + "/graphs/op_info?run=%s&graph_id=%s&op_name=%s"
-            % (run, "nonsensical-graph-id", "Placeholder")
+            f"{_ROUTE_PREFIX}/graphs/op_info?run={run}&graph_id=nonsensical-graph-id&op_name=Placeholder"
         )
 
         self.assertEqual(400, response.status_code)
@@ -1432,7 +1393,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         run = self._getExactlyOneRun()
         # First, look up the valid graph_id.
         response = self.server.get(
-            _ROUTE_PREFIX + "/graph_execution/digests?run=%s" % run
+            f"{_ROUTE_PREFIX}/graph_execution/digests?run={run}"
         )
         data = json.loads(response.get_data())
         digests = data["graph_execution_digests"]
@@ -1442,9 +1403,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         # Query the/graphs/op_info route with a valid graph_id and
         # a nonexistent op_name.
         response = self.server.get(
-            _ROUTE_PREFIX
-            + "/graphs/op_info?run=%s&graph_id=%s&op_name=%s"
-            % (run, graph_id, "nonexistent-op-name")
+            f"{_ROUTE_PREFIX}/graphs/op_info?run={run}&graph_id={graph_id}&op_name=nonexistent-op-name"
         )
 
         self.assertEqual(400, response.status_code)
@@ -1462,9 +1421,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
     def testServeSourceFileListIncludesThisTestFile(self):
         _generate_tfdbg_v2_data(self.logdir)
         run = self._getExactlyOneRun()
-        response = self.server.get(
-            _ROUTE_PREFIX + "/source_files/list?run=%s" % run
-        )
+        response = self.server.get(f"{_ROUTE_PREFIX}/source_files/list?run={run}")
         self.assertEqual(200, response.status_code)
         self.assertEqual(
             "application/json", response.headers.get("content-type")
@@ -1475,7 +1432,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
 
     def testServeSourceFileListWithoutRunParamErrors(self):
         # Make request without run param.
-        response = self.server.get(_ROUTE_PREFIX + "/source_files/list")
+        response = self.server.get(f"{_ROUTE_PREFIX}/source_files/list")
         self.assertEqual(400, response.status_code)
         self.assertEqual(
             "application/json", response.headers.get("content-type")
@@ -1491,9 +1448,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         # First, access the source file list, so we can get hold of the index
         # for this file. The index is required for the request to the
         # "/source_files/file" route below.
-        response = self.server.get(
-            _ROUTE_PREFIX + "/source_files/list?run=%s" % run
-        )
+        response = self.server.get(f"{_ROUTE_PREFIX}/source_files/list?run={run}")
         source_file_list = json.loads(response.get_data())
         index = source_file_list.index([_HOST_NAME, _CURRENT_FILE_FULL_PATH])
 
@@ -1513,7 +1468,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
 
     def testServeSourceFileWithoutRunErrors(self):
         # Make request without run param.
-        response = self.server.get(_ROUTE_PREFIX + "/source_files/file")
+        response = self.server.get(f"{_ROUTE_PREFIX}/source_files/file")
         self.assertEqual(400, response.status_code)
         self.assertEqual(
             "application/json", response.headers.get("content-type")
@@ -1529,9 +1484,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         # First, access the source file list, so we can get hold of the index
         # for this file. The index is required for the request to the
         # "/source_files/file" route below.
-        response = self.server.get(
-            _ROUTE_PREFIX + "/source_files/list?run=%s" % run
-        )
+        response = self.server.get(f"{_ROUTE_PREFIX}/source_files/list?run={run}")
         source_file_list = json.loads(response.get_data())
         self.assertTrue(source_file_list)
 
@@ -1557,7 +1510,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         _generate_tfdbg_v2_data(self.logdir)
         run = self._getExactlyOneRun()
         response = self.server.get(
-            _ROUTE_PREFIX + "/execution/data?run=%s&begin=0&end=1" % run
+            f"{_ROUTE_PREFIX}/execution/data?run={run}&begin=0&end=1"
         )
         data = json.loads(response.get_data())
         stack_frame_ids = data["executions"][0]["stack_frame_ids"]
@@ -1565,9 +1518,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         self.assertTrue(stack_frame_ids)
 
         response = self.server.get(
-            _ROUTE_PREFIX
-            + "/stack_frames/stack_frames?run=%s&stack_frame_ids=%s"
-            % (run, ",".join(stack_frame_ids))
+            f'{_ROUTE_PREFIX}/stack_frames/stack_frames?run={run}&stack_frame_ids={",".join(stack_frame_ids)}'
         )
         self.assertEqual(200, response.status_code)
         self.assertEqual(
@@ -1604,7 +1555,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         _generate_tfdbg_v2_data(self.logdir)
         run = self._getExactlyOneRun()
         response = self.server.get(
-            _ROUTE_PREFIX + "/stack_frames/stack_frames?run=%s" % run
+            f"{_ROUTE_PREFIX}/stack_frames/stack_frames?run={run}"
         )
         self.assertEqual(400, response.status_code)
         self.assertEqual(
@@ -1619,9 +1570,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         _generate_tfdbg_v2_data(self.logdir)
         run = self._getExactlyOneRun()
         response = self.server.get(
-            # Use empty value for the stack_frame_ids parameter.
-            _ROUTE_PREFIX
-            + "/stack_frames/stack_frames?run=%s&stack_frame_ids=" % run
+            f"{_ROUTE_PREFIX}/stack_frames/stack_frames?run={run}&stack_frame_ids="
         )
         self.assertEqual(400, response.status_code)
         self.assertEqual(
@@ -1637,10 +1586,7 @@ class DebuggerV2PluginTest(tf.test.TestCase):
         run = self._getExactlyOneRun()
         invalid_stack_frme_id = "nonsense-stack-frame-id"
         response = self.server.get(
-            # Use empty value for the stack_frame_ids parameter.
-            _ROUTE_PREFIX
-            + "/stack_frames/stack_frames?run=%s&stack_frame_ids=%s"
-            % (run, invalid_stack_frme_id)
+            f"{_ROUTE_PREFIX}/stack_frames/stack_frames?run={run}&stack_frame_ids={invalid_stack_frme_id}"
         )
         self.assertEqual(400, response.status_code)
         self.assertEqual(

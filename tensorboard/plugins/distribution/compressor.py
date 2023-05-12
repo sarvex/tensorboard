@@ -64,10 +64,7 @@ def compress_histogram_proto(histo, bps=NORMAL_HISTOGRAM_BPS):
             if cumsum == cumsum_prev:  # prevent lerp divide by zero
                 i += 1
                 continue
-            if not i or not cumsum_prev:
-                lhs = histo.min
-            else:
-                lhs = max(bucket_limit[i - 1], histo.min)
+            lhs = max(bucket_limit[i - 1], histo.min) if i and cumsum_prev else histo.min
             rhs = min(bucket_limit[i], histo.max)
             weight = _lerp(bps[j], cumsum_prev, cumsum, lhs, rhs)
             values.append(CompressedHistogramValue(bps[j], weight))
@@ -119,10 +116,7 @@ def compress_histogram(buckets, bps=NORMAL_HISTOGRAM_BPS):
             if cumsum == cumsum_prev:  # prevent division-by-zero in `_lerp`
                 i += 1
                 continue
-            if not i or not cumsum_prev:
-                lhs = minmin
-            else:
-                lhs = max(right_edges[i - 1], minmin)
+            lhs = minmin if not i or not cumsum_prev else max(right_edges[i - 1], minmin)
             rhs = min(right_edges[i], maxmax)
             weight = _lerp(bps[bp_index], cumsum_prev, cumsum, lhs, rhs)
             result.append(CompressedHistogramValue(bps[bp_index], weight))

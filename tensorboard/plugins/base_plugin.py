@@ -189,17 +189,13 @@ class FrontendMetadata(object):
             return False
         if self._disable_reload != other._disable_reload:
             return False
-        if self._disable_reload != other._disable_reload:
-            return False
         if self._element_name != other._element_name:
             return False
         if self._es_module_path != other._es_module_path:
             return False
         if self._remove_dom != other._remove_dom:
             return False
-        if self._tab_name != other._tab_name:
-            return False
-        return True
+        return self._tab_name == other._tab_name
 
     def __hash__(self):
         return hash(

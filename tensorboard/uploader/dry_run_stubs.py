@@ -49,5 +49,5 @@ class DryRunTensorBoardWriterStub(object):
 
     def WriteBlob(self, request, **kwargs):
         del kwargs  # Unused.
-        for item in request:
+        for _ in request:
             yield write_service_pb2.WriteBlobResponse()

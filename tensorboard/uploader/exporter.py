@@ -113,8 +113,7 @@ class TensorBoardExporter(object):
         """
         self._api = reader_service_client
         self._outdir = output_directory
-        parent_dir = os.path.dirname(self._outdir)
-        if parent_dir:
+        if parent_dir := os.path.dirname(self._outdir):
             os.makedirs(parent_dir, exist_ok=True)
         try:
             os.mkdir(self._outdir)
@@ -320,10 +319,7 @@ class TensorBoardExporter(object):
           The original ndarray if not np.object, dtype converted to String
           if np.object.
         """
-        if ndarray.dtype != np.object_:
-            return ndarray
-        else:
-            return ndarray.astype("|S")
+        return ndarray if ndarray.dtype != np.object_ else ndarray.astype("|S")
 
     def _get_tensor_file_path(self, experiment_dir, wall_time):
         """Get a nonexistent path for a tensor value.
@@ -453,8 +449,7 @@ def list_experiments(api_client, fieldmask=None, read_time=None):
     )
     for response in stream:
         if response.experiments:
-            for experiment in response.experiments:
-                yield experiment
+            yield from response.experiments
         elif response.experiment_ids:
             raise RuntimeError(
                 "Server sent experiment_ids without experiments: <%r>"
@@ -479,13 +474,10 @@ class GrpcTimeoutException(Exception):
 
 
 def _experiment_directory(base_dir, experiment_id):
-    # Experiment IDs from the server should be filename-safe; verify
-    # this before creating any files.
-    bad_chars = frozenset(experiment_id) - _FILENAME_SAFE_CHARS
-    if bad_chars:
+    if bad_chars := frozenset(experiment_id) - _FILENAME_SAFE_CHARS:
         raise RuntimeError(
             "Unexpected characters ({bad_chars!r}) in experiment ID {eid!r}".format(
                 bad_chars=sorted(bad_chars), eid=experiment_id
             )
         )
-    return os.path.join(base_dir, "experiment_%s" % experiment_id)
+    return os.path.join(base_dir, f"experiment_{experiment_id}")

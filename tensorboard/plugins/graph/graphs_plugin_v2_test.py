@@ -67,52 +67,10 @@ class GraphsPluginV2Test(
             "TODO: enable this after tf-nightly writes a conceptual graph."
         )
 
-        plugin = self.load_plugin(
-            [
-                graphs_plugin_test._RUN_WITH_GRAPH_WITH_METADATA,
-                graphs_plugin_test._RUN_WITHOUT_GRAPH_WITH_METADATA,
-            ]
-        )
-        expected = {
-            "w_graph_wo_meta": {
-                "run": "w_graph_wo_meta",
-                "run_graph": True,
-                "tags": {
-                    "keras": {
-                        "conceptual_graph": True,
-                        "profile": False,
-                        "tag": "keras",
-                        "op_graph": False,
-                    },
-                },
-            },
-        }
-
-        self.generate_run(
-            "w_graph_wo_meta", include_graph=True, include_run_metadata=False
-        )
-        self.generate_run(
-            "wo_graph_wo_meta", include_graph=False, include_run_metadata=False
-        )
-        self.bootstrap_plugin()
-
-        self.assertEqual(expected, plugin.info_impl())
-
     def test_graph_conceptual_graph(self):
         raise self.skipTest(
             "TODO: enable this after tf-nightly writes a conceptual graph."
         )
-
-        self.generate_run(
-            self._RUN_WITH_GRAPH, include_graph=True, include_run_metadata=False
-        )
-        self.bootstrap_plugin()
-
-        graph = self._get_graph(
-            self._RUN_WITH_GRAPH, tag="keras", is_conceptual=True
-        )
-        node_names = set(node.name for node in graph.node)
-        self.assertEqual({"sequential/dense", "sequential/dense_1"}, node_names)
 
 
 if __name__ == "__main__":

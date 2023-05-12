@@ -79,9 +79,7 @@ class DType(object):
             type_enum not in types_pb2.DataType.values()
             or type_enum == types_pb2.DT_INVALID
         ):
-            raise TypeError(
-                "type_enum is not a valid types_pb2.DataType: %s" % type_enum
-            )
+            raise TypeError(f"type_enum is not a valid types_pb2.DataType: {type_enum}")
         self._type_enum = type_enum
 
     @property
@@ -92,18 +90,12 @@ class DType(object):
     @property
     def _as_ref(self):
         """Returns a reference `DType` based on this `DType`."""
-        if self._is_ref_dtype:
-            return self
-        else:
-            return _INTERN_TABLE[self._type_enum + 100]
+        return self if self._is_ref_dtype else _INTERN_TABLE[self._type_enum + 100]
 
     @property
     def base_dtype(self):
         """Returns a non-reference `DType` based on this `DType`."""
-        if self._is_ref_dtype:
-            return _INTERN_TABLE[self._type_enum - 100]
-        else:
-            return self
+        return _INTERN_TABLE[self._type_enum - 100] if self._is_ref_dtype else self
 
     @property
     def real_dtype(self):
@@ -191,7 +183,7 @@ class DType(object):
             complex64,
             complex128,
         ):
-            raise TypeError("Cannot find minimum value of %s." % self)
+            raise TypeError(f"Cannot find minimum value of {self}.")
 
         # there is no simple way to get the min value of a dtype, we have to check
         # float and int types separately
@@ -203,7 +195,7 @@ class DType(object):
             except:
                 if self.base_dtype == bfloat16:
                     return _np_bfloat16(float.fromhex("-0x1.FEp127"))
-                raise TypeError("Cannot find minimum value of %s." % self)
+                raise TypeError(f"Cannot find minimum value of {self}.")
 
     @property
     def max(self):
@@ -218,7 +210,7 @@ class DType(object):
             complex64,
             complex128,
         ):
-            raise TypeError("Cannot find maximum value of %s." % self)
+            raise TypeError(f"Cannot find maximum value of {self}.")
 
         # there is no simple way to get the max value of a dtype, we have to check
         # float and int types separately
@@ -230,7 +222,7 @@ class DType(object):
             except:
                 if self.base_dtype == bfloat16:
                     return _np_bfloat16(float.fromhex("0x1.FEp127"))
-                raise TypeError("Cannot find maximum value of %s." % self)
+                raise TypeError(f"Cannot find maximum value of {self}.")
 
     @property
     def limits(self, clip_negative=True):
@@ -302,7 +294,7 @@ class DType(object):
         return "<dtype: %r>" % self.name
 
     def __repr__(self):
-        return "tf." + self.name
+        return f"tf.{self.name}"
 
     def __hash__(self):
         return self._type_enum
@@ -312,10 +304,7 @@ class DType(object):
 
     @property
     def size(self):
-        if (
-            self._type_enum == types_pb2.DT_VARIANT
-            or self._type_enum == types_pb2.DT_RESOURCE
-        ):
+        if self._type_enum in [types_pb2.DT_VARIANT, types_pb2.DT_RESOURCE]:
             return 1
         return np.dtype(self.as_numpy_dtype).itemsize
 
@@ -670,13 +659,11 @@ def as_dtype(type_value):
     except KeyError:
         pass
 
-    if isinstance(type_value, np.dtype):
-        # The numpy dtype for strings is variable length. We can not compare
-        # dtype with a single constant (np.string does not exist) to decide
-        # dtype is a "string" type. We need to compare the dtype.type to be
-        # sure it's a string type.
-        if type_value.type == np.string_ or type_value.type == np.unicode_:
-            return string
+    if isinstance(type_value, np.dtype) and type_value.type in [
+        np.string_,
+        np.unicode_,
+    ]:
+        return string
 
     if isinstance(type_value, (type, np.dtype)):
         for key, val in _NP_TO_TF:
@@ -684,9 +671,7 @@ def as_dtype(type_value):
                 if key == type_value:
                     return val
             except TypeError as e:
-                raise TypeError(
-                    "Cannot convert {} to a dtype. {}".format(type_value, e)
-                )
+                raise TypeError(f"Cannot convert {type_value} to a dtype. {e}")
 
     raise TypeError(
         "Cannot convert value %r to a TensorFlow DType." % type_value

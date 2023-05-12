@@ -61,7 +61,7 @@ class LocalDataIngester(ingester.DataIngester):
           The new `LocalDataIngester`.
         """
         tensor_size_guidance = dict(DEFAULT_TENSOR_SIZE_GUIDANCE)
-        tensor_size_guidance.update(flags.samples_per_plugin)
+        tensor_size_guidance |= flags.samples_per_plugin
         self._multiplexer = plugin_event_multiplexer.EventMultiplexer(
             size_guidance=DEFAULT_SIZE_GUIDANCE,
             tensor_size_guidance=tensor_size_guidance,
@@ -131,7 +131,7 @@ class LocalDataIngester(ingester.DataIngester):
                 )
             _reload()
         else:
-            raise ValueError("unrecognized reload_task: %s" % self._reload_task)
+            raise ValueError(f"unrecognized reload_task: {self._reload_task}")
 
 
 def _get_event_file_active_filter(flags):

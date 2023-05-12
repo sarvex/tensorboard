@@ -25,7 +25,7 @@ import fsspec
 
 class GFileFSSpecTest(tb_test.TestCase):
     def get_temp_dir(self):
-        return "file://" + super().get_temp_dir()
+        return f"file://{super().get_temp_dir()}"
 
     def testExists(self):
         temp_dir = self.get_temp_dir()
@@ -484,12 +484,12 @@ class GFileFSSpecTest(tb_test.TestCase):
             myfile.write(b"bar")
 
         foo_raw = posixpath.join(temp_dir, "foo.txt")
-        foo_cached = "simplecache::" + foo_raw
+        foo_cached = f"simplecache::{foo_raw}"
 
         self.assertTrue(gfile.exists(foo_raw))
         self.assertTrue(gfile.exists(foo_cached))
 
-        cache_dir = "simplecache::" + temp_dir
+        cache_dir = f"simplecache::{temp_dir}"
         files = gfile.glob(posixpath.join(cache_dir, "*.txt"))
         self.assertCountEqual(
             files,
@@ -513,7 +513,7 @@ class GFileFSSpecTest(tb_test.TestCase):
             myfile.write(b"bar")
 
         foo_raw = posixpath.join(temp_dir, "foo.txt")
-        foo_cached = "simplecache::" + foo_raw
+        foo_cached = f"simplecache::{foo_raw}"
 
         fs = gfile.get_filesystem("file://")
         cached_fs = gfile.get_filesystem("simplecache::file://")
@@ -521,7 +521,7 @@ class GFileFSSpecTest(tb_test.TestCase):
         self.assertTrue(fs.exists(foo_raw))
         self.assertTrue(cached_fs.exists(foo_cached))
 
-        cache_dir = "simplecache::" + temp_dir
+        cache_dir = f"simplecache::{temp_dir}"
         files = cached_fs.glob(posixpath.join(cache_dir, "*.txt"))
         self.assertCountEqual(
             files,

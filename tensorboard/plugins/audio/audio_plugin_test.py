@@ -94,15 +94,12 @@ class AudioPluginTest(tf.test.TestCase):
                         sess.run(
                             merged_summary_op,
                             feed_dict={
-                                audio_placeholder: numpy.random.rand(
-                                    42, 11025, 1
-                                )
+                                audio_placeholder: numpy.random.rand(42, 11025, 1)
                                 * 2
                                 - 1,
                                 labels_placeholder: [
                                     tf.compat.as_bytes(
-                                        "step **%s**, sample %s"
-                                        % (step, sample)
+                                        f"step **{step}**, sample {sample}"
                                     )
                                     for sample in range(42)
                                 ],
@@ -212,7 +209,7 @@ class AudioPluginTest(tf.test.TestCase):
         entries = self._DeserializeResponse(response.get_data())
         query_string = entries[0]["query"]
         response = self.server.get(
-            "/data/plugin/audio/individualAudio?" + query_string
+            f"/data/plugin/audio/individualAudio?{query_string}"
         )
         self.assertEqual(200, response.status_code)
         self.assertEqual("audio/wav", response.headers.get("content-type"))
@@ -227,7 +224,7 @@ class AudioPluginTest(tf.test.TestCase):
         entries = self._DeserializeResponse(response.get_data())
         query_string = entries[0]["query"]
         response = self.server.get(
-            "/data/plugin/audio/individualAudio?" + query_string
+            f"/data/plugin/audio/individualAudio?{query_string}"
         )
         self.assertEqual(200, response.status_code)
         self.assertEqual("audio/wav", response.headers.get("content-type"))
@@ -244,7 +241,7 @@ class AudioPluginTest(tf.test.TestCase):
         query_parts["content-type"] = "application/javascript"
         malicious_query = urllib.parse.urlencode(query_parts)
         response = self.server.get(
-            "/data/plugin/audio/individualAudio?" + malicious_query
+            f"/data/plugin/audio/individualAudio?{malicious_query}"
         )
         self.assertEqual(400, response.status_code)
         self.assertIn(b"Illegal mime type", response.get_data())

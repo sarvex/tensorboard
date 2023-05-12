@@ -86,15 +86,13 @@ def _MakeHistogram(values):
 
 def WriteScalarSeries(writer, tag, f, n=5):
     """Write a series of scalar events to writer, using f to create values."""
-    step = 0
     wall_time = _start_time
-    for i in range(n):
+    for step, i in enumerate(range(n)):
         v = f(i)
         value = tf.Summary.Value(tag=tag, simple_value=v)
         summary = tf.Summary(value=[value])
         event = tf.Event(wall_time=wall_time, step=step, summary=summary)
         writer.add_event(event)
-        step += 1
         wall_time += 10
 
 
@@ -229,9 +227,7 @@ def main(unused_argv=None):
             else:
                 os.remove(target)
         else:
-            print(
-                "Refusing to overwrite target %s without --overwrite" % target
-            )
+            print(f"Refusing to overwrite target {target} without --overwrite")
             return -2
     GenerateTestData(target)
     return 0

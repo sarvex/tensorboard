@@ -469,9 +469,7 @@ class Run(object):
             return False
         if self._run_name != other._run_name:
             return False
-        if self._start_time != other._start_time:
-            return False
-        return True
+        return self._start_time == other._start_time
 
     def __hash__(self):
         return hash((self._run_id, self._run_name, self._start_time))
@@ -565,9 +563,7 @@ class ScalarTimeSeries(_TimeSeries):
             return False
         if self._description != other._description:
             return False
-        if self._display_name != other._display_name:
-            return False
-        return True
+        return self._display_name == other._display_name
 
     def __hash__(self):
         return hash(
@@ -629,9 +625,7 @@ class ScalarDatum(object):
             return False
         if self._wall_time != other._wall_time:
             return False
-        if self._value != other._value:
-            return False
-        return True
+        return self._value == other._value
 
     def __hash__(self):
         return hash((self._step, self._wall_time, self._value))
@@ -674,9 +668,7 @@ class TensorTimeSeries(_TimeSeries):
             return False
         if self._description != other._description:
             return False
-        if self._display_name != other._display_name:
-            return False
-        return True
+        return self._display_name == other._display_name
 
     def __hash__(self):
         return hash(
@@ -739,9 +731,7 @@ class TensorDatum(object):
             return False
         if self._wall_time != other._wall_time:
             return False
-        if not np.array_equal(self._numpy, other._numpy):
-            return False
-        return True
+        return bool(np.array_equal(self._numpy, other._numpy))
 
     # Unhashable type: numpy arrays are mutable.
     __hash__ = None
@@ -813,9 +803,7 @@ class BlobSequenceTimeSeries(_TimeSeries):
             return False
         if self._description != other._description:
             return False
-        if self._display_name != other._display_name:
-            return False
-        return True
+        return self._display_name == other._display_name
 
     def __hash__(self):
         return hash(
@@ -896,11 +884,7 @@ class BlobReference(object):
     def __eq__(self, other):
         if not isinstance(other, BlobReference):
             return False
-        if self._blob_key != other._blob_key:
-            return False
-        if self._url != other._url:
-            return False
-        return True
+        return False if self._blob_key != other._blob_key else self._url == other._url
 
     def __hash__(self):
         return hash((self._blob_key, self._url))
@@ -949,9 +933,7 @@ class BlobSequenceDatum(object):
             return False
         if self._wall_time != other._wall_time:
             return False
-        if self._values != other._values:
-            return False
-        return True
+        return self._values == other._values
 
     def __hash__(self):
         return hash((self._step, self._wall_time, self._values))

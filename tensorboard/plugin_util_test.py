@@ -31,7 +31,7 @@ class SafeHTMLTest(tb_test.TestCase):
             'Check out <a href="http://example.com" title="do it">'
             "my website</a>!"
         )
-        self.assertEqual(plugin_util.safe_html(s), "%s" % s)
+        self.assertEqual(plugin_util.safe_html(s), f"{s}")
 
     def test_arbitrary_tags_and_attributes_removed(self):
         self.assertEqual(
@@ -140,7 +140,7 @@ class MarkdownToSafeHTMLTest(tb_test.TestCase):
             'Check out <a href="http://example.com" title="do it">'
             "my website</a>!"
         )
-        self._test(s, "<p>%s</p>" % s)
+        self._test(s, f"<p>{s}</p>")
 
     def test_arbitrary_tags_and_attributes_removed(self):
         self._test(
@@ -201,7 +201,7 @@ class MarkdownsToSafeHTMLTest(tb_test.TestCase):
 
     def test_sanitizes_combination_result(self):
         inputs = ["safe"]
-        combine = lambda xs: "<script>alert('unsafe!')</script>%s" % xs[0]
+        combine = lambda xs: f"<script>alert('unsafe!')</script>{xs[0]}"
         actual = plugin_util.markdowns_to_safe_html(inputs, combine)
         expected = "&lt;script&gt;alert('unsafe!')&lt;/script&gt;<p>safe</p>"
         self.assertEqual(actual, expected)

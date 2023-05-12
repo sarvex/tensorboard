@@ -85,13 +85,11 @@ class DirectoryWatcher(object):
             (as opposed to being temporarily unavailable).
         """
         try:
-            for event in self._LoadInternal():
-                yield event
+            yield from self._LoadInternal()
         except tf.errors.OpError:
             if not tf.io.gfile.exists(self._directory):
                 raise DirectoryDeletedError(
-                    "Directory %s has been permanently deleted"
-                    % self._directory
+                    f"Directory {self._directory} has been permanently deleted"
                 )
 
     def _LoadInternal(self):
@@ -115,9 +113,7 @@ class DirectoryWatcher(object):
 
         while True:
             # Yield all the new events in the path we're currently loading from.
-            for event in self._loader.Load():
-                yield event
-
+            yield from self._loader.Load()
             next_path = self._GetNextPath()
             if not next_path:
                 logger.info("No path found after %s", self._path)
@@ -140,9 +136,7 @@ class DirectoryWatcher(object):
             # loader contract that no more events will be written to path #1 after
             # events start being written to path #2, so we don't have to worry about
             # that.
-            for event in self._loader.Load():
-                yield event
-
+            yield from self._loader.Load()
             logger.info(
                 "Directory watcher advancing from %s to %s",
                 self._path,
@@ -170,8 +164,7 @@ class DirectoryWatcher(object):
         return self._ooo_writes_detected
 
     def _InitializeLoader(self):
-        path = self._GetNextPath()
-        if path:
+        if path := self._GetNextPath():
             self._SetPath(path)
 
     def _SetPath(self, path):
@@ -229,10 +222,9 @@ class DirectoryWatcher(object):
                     self._ooo_writes_detected = True
                     break
 
-        next_paths = list(
+        if next_paths := [
             path for path in paths if self._path is None or path > self._path
-        )
-        if next_paths:
+        ]:
             return min(next_paths)
         else:
             return None

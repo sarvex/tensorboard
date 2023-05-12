@@ -72,8 +72,7 @@ class LogdirLoader(object):
                 self._directory_loaders[run] = self._directory_loader_factory(
                     subdir
                 )
-        stale_runs = set(self._directory_loaders) - runs_seen
-        if stale_runs:
+        if stale_runs := set(self._directory_loaders) - runs_seen:
             for run in stale_runs:
                 logger.info("- Removing run for relative directory %s", run)
                 del self._directory_loaders[run]
@@ -102,7 +101,6 @@ class LogdirLoader(object):
         """Wraps `DirectoryLoader` generator to swallow
         `DirectoryDeletedError`."""
         try:
-            for item in loader_generator:
-                yield item
+            yield from loader_generator
         except directory_watcher.DirectoryDeletedError:
             return

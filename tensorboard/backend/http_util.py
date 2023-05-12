@@ -15,6 +15,7 @@
 """TensorBoard HTTP utilities."""
 
 
+
 import gzip
 import io
 import json
@@ -54,27 +55,20 @@ _ALLOWS_GZIP_PATTERN = re.compile(
     r"(?:^|,|\s)(?:(?:x-)?gzip|\*)(?!;q=0)(?:\s|,|$)"
 )
 
-_TEXTUAL_MIMETYPES = set(
-    [
-        "application/javascript",
-        "application/json",
-        "application/json+protobuf",
-        "image/svg+xml",
-        "text/css",
-        "text/csv",
-        "text/html",
-        "text/plain",
-        "text/tab-separated-values",
-        "text/x-protobuf",
-    ]
-)
+_TEXTUAL_MIMETYPES = {
+    "application/javascript",
+    "application/json",
+    "application/json+protobuf",
+    "image/svg+xml",
+    "text/css",
+    "text/csv",
+    "text/html",
+    "text/plain",
+    "text/tab-separated-values",
+    "text/x-protobuf",
+}
 
-_JSON_MIMETYPES = set(
-    [
-        "application/json",
-        "application/json+protobuf",
-    ]
-)
+_JSON_MIMETYPES = {"application/json", "application/json+protobuf"}
 
 # Do not support xhtml for now.
 _HTML_MIMETYPE = "text/html"
@@ -156,7 +150,7 @@ def Respond(
         content = content.encode(charset)
 
     if textual and not charset_match and mimetype not in _JSON_MIMETYPES:
-        content_type += "; charset=" + charset
+        content_type += f"; charset={charset}"
     gzip_accepted = _ALLOWS_GZIP_PATTERN.search(
         request.headers.get("Accept-Encoding", "")
     )
@@ -185,17 +179,26 @@ def Respond(
         direct_passthrough = True
 
     headers = list(headers or [])
-    headers.append(("Content-Length", str(content_length)))
-    headers.append(("X-Content-Type-Options", "nosniff"))
+    headers.extend(
+        (
+            ("Content-Length", str(content_length)),
+            ("X-Content-Type-Options", "nosniff"),
+        )
+    )
     if content_encoding:
         headers.append(("Content-Encoding", content_encoding))
     if expires > 0:
         e = wsgiref.handlers.format_date_time(time.time() + float(expires))
-        headers.append(("Expires", e))
-        headers.append(("Cache-Control", "private, max-age=%d" % expires))
+        headers.extend(
+            (
+                ("Expires", e),
+                ("Cache-Control", "private, max-age=%d" % expires),
+            )
+        )
     else:
-        headers.append(("Expires", "0"))
-        headers.append(("Cache-Control", "no-cache, must-revalidate"))
+        headers.extend(
+            (("Expires", "0"), ("Cache-Control", "no-cache, must-revalidate"))
+        )
     if mimetype == _HTML_MIMETYPE:
         frags = (
             _CSP_SCRIPT_DOMAINS_WHITELIST
@@ -203,44 +206,20 @@ def Respond(
                 "'self'" if _CSP_SCRIPT_SELF else "",
                 "'unsafe-eval'" if _CSP_SCRIPT_UNSAFE_EVAL else "",
             ]
-            + [
-                "'sha256-{}'".format(sha256)
-                for sha256 in (csp_scripts_sha256s or [])
-            ]
+            + [f"'sha256-{sha256}'" for sha256 in (csp_scripts_sha256s or [])]
         )
         script_srcs = _create_csp_string(*frags)
 
         csp_string = ";".join(
             [
                 "default-src 'self'",
-                "font-src %s"
-                % _create_csp_string("'self'", *_CSP_FONT_DOMAINS_WHITELIST),
-                # Dynamic plugins are rendered inside an iframe.
-                "frame-src %s"
-                % _create_csp_string("'self'", *_CSP_FRAME_DOMAINS_WHITELIST),
-                "img-src %s"
-                % _create_csp_string(
-                    "'self'",
-                    # used by favicon
-                    "data:",
-                    # used by What-If tool for image sprites.
-                    "blob:",
-                    *_CSP_IMG_DOMAINS_WHITELIST,
-                ),
+                f"""font-src {_create_csp_string("'self'", *_CSP_FONT_DOMAINS_WHITELIST)}""",
+                f"""frame-src {_create_csp_string("'self'", *_CSP_FRAME_DOMAINS_WHITELIST)}""",
+                f"""img-src {_create_csp_string("'self'", "data:", "blob:", *_CSP_IMG_DOMAINS_WHITELIST)}""",
                 "object-src 'none'",
-                "style-src %s"
-                % _create_csp_string(
-                    "'self'",
-                    # used by google-chart
-                    "https://www.gstatic.com",
-                    "data:",
-                    # inline styles: Polymer templates + d3 uses inline styles.
-                    "'unsafe-inline'",
-                    *_CSP_STYLE_DOMAINS_WHITELIST,
-                ),
-                "connect-src %s"
-                % _create_csp_string("'self'", *_CSP_CONNECT_DOMAINS_WHITELIST),
-                "script-src %s" % script_srcs,
+                f"""style-src {_create_csp_string("'self'", "https://www.gstatic.com", "data:", "'unsafe-inline'", *_CSP_STYLE_DOMAINS_WHITELIST)}""",
+                f"""connect-src {_create_csp_string("'self'", *_CSP_CONNECT_DOMAINS_WHITELIST)}""",
+                f"script-src {script_srcs}",
             ]
         )
 

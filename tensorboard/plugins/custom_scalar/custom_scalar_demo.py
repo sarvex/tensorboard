@@ -119,9 +119,9 @@ def create_layout_summary():
 
 
 def main(unused_argv):
-    print("Saving output to %s." % LOGDIR)
+    print(f"Saving output to {LOGDIR}.")
     run(LOGDIR)
-    print("Done. Output saved to %s." % LOGDIR)
+    print(f"Done. Output saved to {LOGDIR}.")
 
 
 if __name__ == "__main__":

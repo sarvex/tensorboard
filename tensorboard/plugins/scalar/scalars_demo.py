@@ -122,7 +122,7 @@ def run_all(logdir, verbose=False):
                     heat_coefficient,
                 )
                 if verbose:
-                    print("--- Running: %s" % run_name)
+                    print(f"--- Running: {run_name}")
                 writer = tf.summary.create_file_writer(
                     os.path.join(logdir, run_name)
                 )
@@ -138,7 +138,7 @@ def run_all(logdir, verbose=False):
 
 
 def main(unused_argv):
-    print("Saving output to %s." % LOGDIR)
+    print(f"Saving output to {LOGDIR}.")
     run_all(LOGDIR, verbose=True)
     print(
         """
@@ -157,7 +157,7 @@ Upload to TensorBoard.dev:
 """
         % (LOGDIR, LOGDIR)
     )
-    print("Done. Output saved to %s." % LOGDIR)
+    print(f"Done. Output saved to {LOGDIR}.")
 
 
 if __name__ == "__main__":

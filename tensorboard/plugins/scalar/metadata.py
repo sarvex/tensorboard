@@ -32,14 +32,13 @@ def create_summary_metadata(display_name, description):
       A `summary_pb2.SummaryMetadata` protobuf object.
     """
     content = plugin_data_pb2.ScalarPluginData(version=PROTO_VERSION)
-    metadata = summary_pb2.SummaryMetadata(
+    return summary_pb2.SummaryMetadata(
         display_name=display_name,
         summary_description=description,
         plugin_data=summary_pb2.SummaryMetadata.PluginData(
             plugin_name=PLUGIN_NAME, content=content.SerializeToString()
         ),
     )
-    return metadata
 
 
 def parse_plugin_metadata(content):
@@ -54,8 +53,4 @@ def parse_plugin_metadata(content):
     """
     if not isinstance(content, bytes):
         raise TypeError("Content type must be bytes")
-    result = plugin_data_pb2.ScalarPluginData.FromString(content)
-    if result.version == 0:
-        return result
-    # No other versions known at this time, so no migrations to do.
-    return result
+    return plugin_data_pb2.ScalarPluginData.FromString(content)

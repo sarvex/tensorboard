@@ -182,13 +182,12 @@ class EventAccumulator(object):
             a TensorFlow restart.
         """
         size_guidance = size_guidance or DEFAULT_SIZE_GUIDANCE
-        sizes = {}
-        for key in DEFAULT_SIZE_GUIDANCE:
-            if key in size_guidance:
-                sizes[key] = size_guidance[key]
-            else:
-                sizes[key] = DEFAULT_SIZE_GUIDANCE[key]
-
+        sizes = {
+            key: size_guidance[key]
+            if key in size_guidance
+            else DEFAULT_SIZE_GUIDANCE[key]
+            for key in DEFAULT_SIZE_GUIDANCE
+        }
         self._first_event_timestamp = None
         self.scalars = reservoir.Reservoir(size=sizes[SCALARS])
 
@@ -792,24 +791,7 @@ def _GetPurgeMessage(
     num_expired_audio,
 ):
     """Return the string message associated with TensorBoard purges."""
-    return (
-        "Detected out of order event.step likely caused by "
-        "a TensorFlow restart. Purging expired events from Tensorboard"
-        " display between the previous step: {} (timestamp: {}) and "
-        "current step: {} (timestamp: {}). Removing {} scalars, {} "
-        "histograms, {} compressed histograms, {} images, "
-        "and {} audio."
-    ).format(
-        most_recent_step,
-        most_recent_wall_time,
-        event_step,
-        event_wall_time,
-        num_expired_scalars,
-        num_expired_histos,
-        num_expired_comp_histos,
-        num_expired_images,
-        num_expired_audio,
-    )
+    return f"Detected out of order event.step likely caused by a TensorFlow restart. Purging expired events from Tensorboard display between the previous step: {most_recent_step} (timestamp: {most_recent_wall_time}) and current step: {event_step} (timestamp: {event_wall_time}). Removing {num_expired_scalars} scalars, {num_expired_histos} histograms, {num_expired_comp_histos} compressed histograms, {num_expired_images} images, and {num_expired_audio} audio."
 
 
 def _GeneratorFromPath(path):

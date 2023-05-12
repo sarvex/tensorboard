@@ -72,13 +72,12 @@ def run():
 
 
 def main(unused_argv):
-    print("Saving output to %s." % FLAGS.logdir)
+    print(f"Saving output to {FLAGS.logdir}.")
     print(
-        "To view results in your browser, run `tensorboard --logdir %s`"
-        % FLAGS.logdir
+        f"To view results in your browser, run `tensorboard --logdir {FLAGS.logdir}`"
     )
     run()
-    print("Done. Output saved to %s." % FLAGS.logdir)
+    print(f"Done. Output saved to {FLAGS.logdir}.")
 
 
 if __name__ == "__main__":

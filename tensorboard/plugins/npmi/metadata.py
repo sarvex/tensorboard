@@ -52,8 +52,4 @@ def parse_plugin_metadata(content):
     """
     if not isinstance(content, bytes):
         raise TypeError("Content type must be bytes")
-    result = plugin_data_pb2.NpmiPluginData.FromString(content)
-    if result.version == 0:
-        return result
-    # No other versions known at this time, so no migrations to do.
-    return result
+    return plugin_data_pb2.NpmiPluginData.FromString(content)

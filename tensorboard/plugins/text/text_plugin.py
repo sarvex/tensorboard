@@ -99,9 +99,7 @@ def make_table(contents, headers=None):
         if isinstance(headers, (list, tuple)):
             headers = np.array(headers)
         if not isinstance(headers, np.ndarray):
-            raise ValueError(
-                "Could not convert headers %s into np.ndarray" % headers
-            )
+            raise ValueError(f"Could not convert headers {headers} into np.ndarray")
         if headers.ndim != 1:
             raise ValueError("Headers must be 1d, is %dd" % headers.ndim)
         expected_n_columns = contents.shape[1] if contents.ndim == 2 else 1

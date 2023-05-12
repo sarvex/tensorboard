@@ -36,13 +36,12 @@ def inline_images():
     for image_file in image_files:
         with open(image_file, "rb") as f:
             base64_content = base64.b64encode(f.read()).decode("utf-8")
-        data_uri = "data:%s;base64,%s" % (MIME_TYPE, base64_content)
+        data_uri = f"data:{MIME_TYPE};base64,{base64_content}"
         image_basename = os.path.basename(image_file)
-        image_template = "%" + image_basename + "%"
+        image_template = f"%{image_basename}%"
         if image_template not in html:
             raise ValueError(
-                "Cannot find %s in input html file %s"
-                % (image_template, input_html_path)
+                f"Cannot find {image_template} in input html file {input_html_path}"
             )
         html = html.replace(image_template, data_uri)
     sys.stdout.write(html)

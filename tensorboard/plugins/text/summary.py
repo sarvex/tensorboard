@@ -109,8 +109,6 @@ def pb(name, data, display_name=None, description=None):
     )
     summary = tf.Summary()
     summary.value.add(
-        tag="%s/text_summary" % name,
-        metadata=tf_summary_metadata,
-        tensor=tensor,
+        tag=f"{name}/text_summary", metadata=tf_summary_metadata, tensor=tensor
     )
     return summary

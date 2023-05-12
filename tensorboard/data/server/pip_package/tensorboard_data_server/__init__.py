@@ -30,6 +30,4 @@ def server_binary():
       with this package.
     """
     path = os.path.join(os.path.dirname(__file__), "bin", "server")
-    if not os.path.exists(path):
-        return None
-    return path
+    return None if not os.path.exists(path) else path

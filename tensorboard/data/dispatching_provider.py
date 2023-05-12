@@ -64,8 +64,7 @@ class DispatchingDataProvider(provider.DataProvider):
             which would make it impossible to match.
         """
         self._providers = dict(providers)
-        invalid_names = sorted(k for k in self._providers if _SEPARATOR in k)
-        if invalid_names:
+        if invalid_names := sorted(k for k in self._providers if _SEPARATOR in k):
             raise ValueError("Invalid provider key(s): %r" % invalid_names)
         self._unprefixed_provider = unprefixed_provider
 
@@ -203,7 +202,7 @@ def _decode_blob_key(key):
     """
     failure = errors.NotFoundError("Invalid blob key: %r" % key)
 
-    b64_str = key + "=="  # ensure adequate padding (overpadding is okay)
+    b64_str = f"{key}=="
     json_str = base64.urlsafe_b64decode(b64_str).decode("ascii")
     payload = json.loads(json_str)
     if not isinstance(payload, list) or len(payload) != 2:

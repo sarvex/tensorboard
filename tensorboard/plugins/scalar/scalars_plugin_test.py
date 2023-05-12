@@ -81,8 +81,7 @@ class ScalarsPluginTest(tf.test.TestCase):
     def load_server(self, run_names):
         plugin = self.load_plugin(run_names)
         wsgi_app = application.TensorBoardWSGI([plugin])
-        server = werkzeug_test.Client(wsgi_app, wrappers.BaseResponse)
-        return server
+        return werkzeug_test.Client(wsgi_app, wrappers.BaseResponse)
 
     def generate_run(self, logdir, run_name):
         subdir = os.path.join(logdir, run_name)
@@ -143,13 +142,11 @@ class ScalarsPluginTest(tf.test.TestCase):
                     },
                 },
                 self._RUN_WITH_SCALARS: {
-                    "%s/scalar_summary"
-                    % self._SCALAR_TAG: {
+                    f"{self._SCALAR_TAG}/scalar_summary": {
                         "displayName": self._DISPLAY_NAME,
                         "description": self._HTML_DESCRIPTION,
-                    },
+                    }
                 },
-                # _RUN_WITH_HISTOGRAM omitted: No scalar data.
             },
             json.loads(response.get_data()),
         )
@@ -173,7 +170,7 @@ class ScalarsPluginTest(tf.test.TestCase):
             "/data/plugin/scalars/scalars",
             query_string={
                 "run": self._RUN_WITH_SCALARS,
-                "tag": "%s/scalar_summary" % self._SCALAR_TAG,
+                "tag": f"{self._SCALAR_TAG}/scalar_summary",
             },
         )
         self.assertEqual(200, response.status_code)
@@ -202,7 +199,7 @@ class ScalarsPluginTest(tf.test.TestCase):
             "/data/plugin/scalars/scalars",
             query_string={
                 "run": self._RUN_WITH_HISTOGRAM,
-                "tag": "%s/scalar_summary" % self._HISTOGRAM_TAG,
+                "tag": f"{self._HISTOGRAM_TAG}/scalar_summary",
             },
         )
         self.assertEqual(404, response.status_code)
@@ -218,7 +215,7 @@ class ScalarsPluginTest(tf.test.TestCase):
         response = server.post(
             "/data/plugin/scalars/scalars_multirun",
             data={
-                "tag": "%s/scalar_summary" % self._SCALAR_TAG,
+                "tag": f"{self._SCALAR_TAG}/scalar_summary",
                 "runs": [
                     self._RUN_WITH_SCALARS,
                     # skip _RUN_WITH_SCALARS_2
@@ -253,7 +250,7 @@ class ScalarsPluginTest(tf.test.TestCase):
         response = server.post(
             "/data/plugin/scalars/scalars_multirun",
             data={
-                "tag": "%s/scalar_summary" % self._SCALAR_TAG,
+                "tag": f"{self._SCALAR_TAG}/scalar_summary",
                 "runs": [self._RUN_WITH_SCALARS],
             },
         )
@@ -267,7 +264,7 @@ class ScalarsPluginTest(tf.test.TestCase):
         server = self.load_server([self._RUN_WITH_SCALARS])
         response = server.post(
             "/data/plugin/scalars/scalars_multirun",
-            data={"tag": "%s/scalar_summary" % self._SCALAR_TAG},
+            data={"tag": f"{self._SCALAR_TAG}/scalar_summary"},
         )
         self.assertEqual(200, response.status_code)
         self.assertEqual("application/json", response.headers["Content-Type"])
@@ -302,7 +299,7 @@ class ScalarsPluginTest(tf.test.TestCase):
         response = server.get(
             "/data/plugin/scalars/scalars_multirun",
             query_string={
-                "tag": "%s/scalar_summary" % self._SCALAR_TAG,
+                "tag": f"{self._SCALAR_TAG}/scalar_summary",
                 "runs": [
                     self._RUN_WITH_SCALARS,
                     self._RUN_WITH_SCALARS_3,
@@ -339,11 +336,7 @@ class ScalarsPluginTest(tf.test.TestCase):
         wsgi_app = application.TensorBoardWSGI([plugin])
         server = werkzeug_test.Client(wsgi_app, wrappers.BaseResponse)
         response = server.get(
-            "/data/plugin/scalars/scalars?run=%s&tag=%s"
-            % (
-                self._RUN_WITH_SCALARS,
-                "%s/scalar_summary" % self._SCALAR_TAG,
-            )
+            f"/data/plugin/scalars/scalars?run={self._RUN_WITH_SCALARS}&tag={self._SCALAR_TAG}/scalar_summary"
         )
         self.assertEqual(200, response.status_code)
         self.assertEqual("application/json", response.headers["Content-Type"])
@@ -355,11 +348,7 @@ class ScalarsPluginTest(tf.test.TestCase):
         wsgi_app = application.TensorBoardWSGI([plugin])
         server = werkzeug_test.Client(wsgi_app, wrappers.BaseResponse)
         response = server.get(
-            "/data/plugin/scalars/scalars?run=%s&tag=%s&format=csv"
-            % (
-                self._RUN_WITH_SCALARS,
-                "%s/scalar_summary" % self._SCALAR_TAG,
-            )
+            f"/data/plugin/scalars/scalars?run={self._RUN_WITH_SCALARS}&tag={self._SCALAR_TAG}/scalar_summary&format=csv"
         )
         self.assertEqual(200, response.status_code)
         self.assertEqual(

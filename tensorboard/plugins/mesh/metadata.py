@@ -54,10 +54,7 @@ def get_current_version():
 def get_instance_name(name, content_type):
     """Returns a unique instance name for a given summary related to the
     mesh."""
-    return "%s_%s" % (
-        name,
-        plugin_data_pb2.MeshPluginData.ContentType.Name(content_type),
-    )
+    return f"{name}_{plugin_data_pb2.MeshPluginData.ContentType.Name(content_type)}"
 
 
 def create_summary_metadata(
@@ -89,7 +86,7 @@ def create_summary_metadata(
     # and N - the number of points, each with x,y,z coordinates.
     if len(shape) != 3:
         raise ValueError(
-            "Tensor shape should be of shape BxNx3, but got %s." % str(shape)
+            f"Tensor shape should be of shape BxNx3, but got {str(shape)}."
         )
     mesh_plugin_data = plugin_data_pb2.MeshPluginData(
         version=get_current_version(),

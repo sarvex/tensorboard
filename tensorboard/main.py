@@ -45,7 +45,7 @@ def run_main():
     try:
         app.run(tensorboard.main, flags_parser=tensorboard.configure)
     except base_plugin.FlagsError as e:
-        print("Error: %s" % e, file=sys.stderr)
+        print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
 

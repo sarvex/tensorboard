@@ -48,7 +48,7 @@ def write_embedding(log_dir):
     os.makedirs(log_dir, exist_ok=True)
     with open(os.path.join(log_dir, metadata_filename), "w") as f:
         for label in labels_to_tensors:
-            f.write("{}\n".format(label))
+            f.write(f"{label}\n")
     with open(os.path.join(log_dir, tensor_filename), "w") as f:
         for tensor in labels_to_tensors.values():
             f.write("{}\n".format("\t".join(str(x) for x in tensor)))
@@ -61,9 +61,9 @@ def write_embedding(log_dir):
 
 
 def main(unused_argv):
-    print("Saving output to %s." % FLAGS.logdir)
+    print(f"Saving output to {FLAGS.logdir}.")
     write_embedding(FLAGS.logdir)
-    print("Done. Output saved to %s." % FLAGS.logdir)
+    print(f"Done. Output saved to {FLAGS.logdir}.")
 
 
 ANIMALS = """

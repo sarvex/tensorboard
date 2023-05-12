@@ -235,7 +235,7 @@ def pb(name, data, bucket_count=None, display_name=None, description=None):
 
     summary = tf.Summary()
     summary.value.add(
-        tag="%s/histogram_summary" % name,
+        tag=f"{name}/histogram_summary",
         metadata=tf_summary_metadata,
         tensor=tensor,
     )

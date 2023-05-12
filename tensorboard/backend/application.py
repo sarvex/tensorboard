@@ -242,16 +242,14 @@ class TensorBoardWSGI(object):
         plugin_names_encountered = set()
         for plugin in self._plugins:
             if plugin.plugin_name is None:
-                raise ValueError("Plugin %s has no plugin_name" % plugin)
+                raise ValueError(f"Plugin {plugin} has no plugin_name")
             if not _VALID_PLUGIN_RE.match(plugin.plugin_name):
                 raise ValueError(
                     "Plugin %s has invalid name %r"
                     % (plugin, plugin.plugin_name)
                 )
             if plugin.plugin_name in plugin_names_encountered:
-                raise ValueError(
-                    "Duplicate plugins for name %s" % plugin.plugin_name
-                )
+                raise ValueError(f"Duplicate plugins for name {plugin.plugin_name}")
             plugin_names_encountered.add(plugin.plugin_name)
 
             try:
@@ -298,13 +296,13 @@ class TensorBoardWSGI(object):
                             "(i.e., `/.../*`)" % (plugin.plugin_name, path)
                         )
                     unordered_prefix_routes[path] = app
+                elif "*" in path:
+                    raise ValueError(
+                        "Plugin %r handles invalid route %r: Only "
+                        "trailing wildcards are supported "
+                        "(i.e., `/.../*`)" % (plugin.plugin_name, path)
+                    )
                 else:
-                    if "*" in path:
-                        raise ValueError(
-                            "Plugin %r handles invalid route %r: Only "
-                            "trailing wildcards are supported "
-                            "(i.e., `/.../*`)" % (plugin.plugin_name, path)
-                        )
                     self.exact_routes[path] = app
 
         # Wildcard routes will be checked in the given order, so we sort them
@@ -371,10 +369,8 @@ class TensorBoardWSGI(object):
         if urlparse.urlparse(module_path).netloc:
             raise ValueError("Expected es_module_path to be non-absolute path")
 
-        module_json = json.dumps("." + module_path)
-        script_content = "import({}).then((m) => void m.render());".format(
-            module_json
-        )
+        module_json = json.dumps(f".{module_path}")
+        script_content = f"import({module_json}).then((m) => void m.render());"
         digest = hashlib.sha256(script_content.encode("utf-8")).digest()
         script_sha = base64.b64encode(digest).decode("ascii")
 
@@ -449,15 +445,11 @@ class TensorBoardWSGI(object):
             output_metadata = {
                 "disable_reload": plugin_metadata.disable_reload,
                 "enabled": is_active,
-                # loading_mechanism set below
                 "remove_dom": plugin_metadata.remove_dom,
-                # tab_name set below
+                "tab_name": plugin_metadata.tab_name
+                if plugin_metadata.tab_name is not None
+                else plugin.plugin_name,
             }
-
-            if plugin_metadata.tab_name is not None:
-                output_metadata["tab_name"] = plugin_metadata.tab_name
-            else:
-                output_metadata["tab_name"] = plugin.plugin_name
 
             es_module_handler = plugin_metadata.es_module_path
             element_name = plugin_metadata.element_name
@@ -482,12 +474,12 @@ class TensorBoardWSGI(object):
                     plugin.plugin_name,
                 )
                 continue
-            elif element_name is not None and es_module_handler is None:
+            elif element_name is not None:
                 loading_mechanism = {
                     "type": "CUSTOM_ELEMENT",
                     "element_name": element_name,
                 }
-            elif element_name is None and es_module_handler is not None:
+            elif es_module_handler is not None:
                 loading_mechanism = {
                     "type": "IFRAME",
                     "module_path": "".join(
@@ -543,20 +535,18 @@ class TensorBoardWSGI(object):
         parsed_url = urlparse.urlparse(request.path)
         clean_path = _clean_path(parsed_url.path)
 
-        # pylint: disable=too-many-function-args
         if clean_path in self.exact_routes:
             return self.exact_routes[clean_path](environ, start_response)
-        else:
-            for path_prefix in self.prefix_routes:
-                if clean_path.startswith(path_prefix):
-                    return self.prefix_routes[path_prefix](
-                        environ, start_response
-                    )
+        for path_prefix in self.prefix_routes:
+            if clean_path.startswith(path_prefix):
+                return self.prefix_routes[path_prefix](
+                    environ, start_response
+                )
 
-            logger.warning("path %s not found, sending 404", clean_path)
-            return http_util.Respond(
-                request, "Not found", "text/plain", code=404
-            )(environ, start_response)
+        logger.warning("path %s not found, sending 404", clean_path)
+        return http_util.Respond(
+            request, "Not found", "text/plain", code=404
+        )(environ, start_response)
         # pylint: enable=too-many-function-args
 
 
@@ -600,9 +590,7 @@ def _clean_path(path):
     Returns:
       The route to use to serve the request.
     """
-    if path != "/" and path.endswith("/"):
-        return path[:-1]
-    return path
+    return path[:-1] if path != "/" and path.endswith("/") else path
 
 
 def _placeholder_assets_zip_provider():

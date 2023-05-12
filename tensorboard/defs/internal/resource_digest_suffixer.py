@@ -27,7 +27,7 @@ def replace_files(template_filepath, handlebar_and_filepath):
             digest = hashlib.sha256(res).hexdigest()
 
         basename = os.path.basename(filepath)
-        replacements[handlebar] = basename + "?_file_hash=%s" % digest[:8]
+        replacements[handlebar] = f"{basename}?_file_hash={digest[:8]}"
 
     with open(template_filepath, "r") as f:
         template = f.read()

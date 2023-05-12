@@ -43,20 +43,17 @@ def combine(files):
     svgs_to_insert = []
     for filename in files:
         partial_doc = minidom.parse(filename)
-        partial_defs = partial_doc.getElementsByTagName("defs")
-        if partial_defs:
+        if partial_defs := partial_doc.getElementsByTagName("defs"):
             if len(partial_defs) > 1:
                 raise ValueError(
-                    "Unexpected document structure. Expected only one `<defs>`"
-                    "in '%s'." % filename
+                    f"Unexpected document structure. Expected only one `<defs>`in '{filename}'."
                 )
             svgs_to_insert.extend(partial_defs[0].childNodes)
         else:
             maybe_svg_el = partial_doc.documentElement
             if maybe_svg_el.tagName != "svg":
                 raise ValueError(
-                    "Unexpected document. Expected '%s' to start with <svg>."
-                    % filename
+                    f"Unexpected document. Expected '{filename}' to start with <svg>."
                 )
             svg_el = maybe_svg_el
 

@@ -50,16 +50,10 @@ def get_user_config_directory():
     # users (https://stackoverflow.com/a/7617601/1179226). If neither is set,
     # return None instead of falling back to something that may be world-readable.
     if os.name == "nt":
-        appdata = os.getenv("LOCALAPPDATA")
-        if appdata:
+        if appdata := os.getenv("LOCALAPPDATA"):
             return appdata
-        appdata = os.getenv("APPDATA")
-        if appdata:
-            return appdata
-        return None
-    # On non-windows, use XDG_CONFIG_HOME if set, else default to ~/.config.
-    xdg_config_home = os.getenv("XDG_CONFIG_HOME")
-    if xdg_config_home:
+        return appdata if (appdata := os.getenv("APPDATA")) else None
+    if xdg_config_home := os.getenv("XDG_CONFIG_HOME"):
         return xdg_config_home
     return os.path.join(os.path.expanduser("~"), ".config")
 
@@ -99,7 +93,7 @@ def make_file_with_directories(path, private=False):
         if private:
             os.chmod(path, 0o600)
     except EnvironmentError as e:
-        raise RuntimeError("Failed to create file %s: %s" % (path, e))
+        raise RuntimeError(f"Failed to create file {path}: {e}")
 
 
 def set_timestamp(pb, seconds_since_epoch):
@@ -158,7 +152,7 @@ def format_time(timestamp_pb, now=None):
     elif ago < datetime.timedelta(days=1):
         relative = ago_text(int(ago.total_seconds()) // 3600, "hour", "hours")
 
-    relative_part = " (%s)" % relative if relative is not None else ""
+    relative_part = f" ({relative})" if relative is not None else ""
     return str(dt) + relative_part
 
 

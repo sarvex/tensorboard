@@ -113,22 +113,22 @@ class SubprocessServerDataIngester(ingester.DataIngester):
             reload = str(int(self._reload_interval))
 
         sample_hint_pairs = [
-            "%s=%s" % (k, "all" if v == 0 else v)
+            f'{k}={"all" if v == 0 else v}'
             for k, v in self._samples_per_plugin.items()
         ]
         samples_per_plugin = ",".join(sample_hint_pairs)
 
         args = [
             self._server_binary.path,
-            "--logdir=%s" % os.path.expanduser(self._logdir),
-            "--reload=%s" % reload,
-            "--samples-per-plugin=%s" % samples_per_plugin,
+            f"--logdir={os.path.expanduser(self._logdir)}",
+            f"--reload={reload}",
+            f"--samples-per-plugin={samples_per_plugin}",
             "--port=0",
-            "--port-file=%s" % (port_file_path,),
+            f"--port-file={port_file_path}",
             "--die-after-stdin",
         ]
         if self._server_binary.at_least_version("0.5.0a0"):
-            args.append("--error-file=%s" % (error_file_path,))
+            args.append(f"--error-file={error_file_path}")
         if logger.isEnabledFor(logging.INFO):
             args.append("--verbose")
         if logger.isEnabledFor(logging.DEBUG):
@@ -183,7 +183,7 @@ class SubprocessServerDataIngester(ingester.DataIngester):
         try:
             stub.GetExperiment(req, timeout=5)  # should be near-instant
         except grpc.RpcError as e:
-            msg = "Failed to communicate with data server at %s: %s" % (addr, e)
+            msg = f"Failed to communicate with data server at {addr}: {e}"
             logging.warning("%s", msg)
             raise DataServerStartupError(msg) from e
         logger.info("Got valid response from data server")
@@ -265,13 +265,11 @@ class ServerBinary:
 
 def get_server_binary():
     """Get `ServerBinary` info or raise `NoDataServerError`."""
-    env_result = os.environ.get(_ENV_DATA_SERVER_BINARY)
-    if env_result:
+    if env_result := os.environ.get(_ENV_DATA_SERVER_BINARY):
         logging.info("Server binary (from env): %s", env_result)
         if not os.path.isfile(env_result):
             raise NoDataServerError(
-                "Found environment variable %s=%s, but no such file exists."
-                % (_ENV_DATA_SERVER_BINARY, env_result)
+                f"Found environment variable {_ENV_DATA_SERVER_BINARY}={env_result}, but no such file exists."
             )
         return ServerBinary(env_result, version=None)
 

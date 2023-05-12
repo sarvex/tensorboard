@@ -46,7 +46,7 @@ class MetadataTest(tf.test.TestCase):
             display_name,
             plugin_data_pb2.MeshPluginData.ContentType.Value("VERTEX"),
         )
-        self.assertEqual("%s_VERTEX" % display_name, instance_name)
+        self.assertEqual(f"{display_name}_VERTEX", instance_name)
 
     def test_create_summary_metadata(self):
         """Tests MeshPlugin metadata creation."""

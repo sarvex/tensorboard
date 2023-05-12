@@ -202,18 +202,11 @@ def start(args_string):
             if start_result.explicit_binary is not None
             else "`tensorboard`"
         )
-        if start_result.os_error.errno == errno.ENOENT:
-            message = (
-                "ERROR: Could not find %s. Please ensure that your PATH contains "
-                "an executable `tensorboard` program, or explicitly specify the path "
-                "to a TensorBoard binary by setting the `TENSORBOARD_BINARY` "
-                "environment variable." % (the_tensorboard_binary,)
-            )
-        else:
-            message = "ERROR: Failed to start %s: %s" % (
-                the_tensorboard_binary,
-                start_result.os_error,
-            )
+        message = (
+            f"ERROR: Could not find {the_tensorboard_binary}. Please ensure that your PATH contains an executable `tensorboard` program, or explicitly specify the path to a TensorBoard binary by setting the `TENSORBOARD_BINARY` environment variable."
+            if start_result.os_error.errno == errno.ENOENT
+            else f"ERROR: Failed to start {the_tensorboard_binary}: {start_result.os_error}"
+        )
         print_or_update(textwrap.fill(message))
 
     elif isinstance(start_result, manager.StartTimedOut):
@@ -273,35 +266,27 @@ def _display(port=None, height=None, print_message=False, display_handle=None):
         height = 800
 
     if port is None:
-        infos = manager.get_all()
-        if not infos:
+        if not (infos := manager.get_all()):
             raise ValueError(
                 "Can't display TensorBoard: no known instances running."
             )
-        else:
-            info = max(manager.get_all(), key=lambda x: x.start_time)
-            port = info.port
+        info = max(manager.get_all(), key=lambda x: x.start_time)
+        port = info.port
     else:
         infos = [i for i in manager.get_all() if i.port == port]
         info = max(infos, key=lambda x: x.start_time) if infos else None
 
-    if print_message:
-        if info is not None:
-            message = (
-                "Selecting TensorBoard with {data_source} "
-                "(started {delta} ago; port {port}, pid {pid})."
-            ).format(
-                data_source=manager.data_source_from_info(info),
-                delta=_time_delta_from_info(info),
-                port=info.port,
-                pid=info.pid,
-            )
-            print(message)
-        else:
-            # The user explicitly provided a port, and we don't have any
-            # additional information. There's nothing useful to say.
-            pass
-
+    if print_message and info is not None:
+        message = (
+            "Selecting TensorBoard with {data_source} "
+            "(started {delta} ago; port {port}, pid {pid})."
+        ).format(
+            data_source=manager.data_source_from_info(info),
+            delta=_time_delta_from_info(info),
+            port=info.port,
+            pid=info.pid,
+        )
+        print(message)
     fn = {
         _CONTEXT_COLAB: _display_colab,
         _CONTEXT_IPYTHON: _display_ipython,
@@ -429,10 +414,10 @@ def list():
         return
 
     print("Known TensorBoard instances:")
+    template = (
+        "  - port {port}: {data_source} (started {delta} ago; pid {pid})"
+    )
     for info in infos:
-        template = (
-            "  - port {port}: {data_source} (started {delta} ago; pid {pid})"
-        )
         print(
             template.format(
                 port=info.port,

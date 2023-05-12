@@ -50,9 +50,9 @@ def run_all(logdir):
 
 def main(unused_argv):
     logging.set_verbosity(logging.INFO)
-    logging.info("Saving output to %s." % LOGDIR)
+    logging.info(f"Saving output to {LOGDIR}.")
     run_all(LOGDIR)
-    logging.info("Done. Output saved to %s." % LOGDIR)
+    logging.info(f"Done. Output saved to {LOGDIR}.")
 
 
 if __name__ == "__main__":

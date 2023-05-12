@@ -40,7 +40,7 @@ def main():
         src_basename = os.path.basename(src_path)
 
         if src_basename in template_name_to_content:
-            raise ValueError("Duplicate src basename: %s" % src_basename)
+            raise ValueError(f"Duplicate src basename: {src_basename}")
         template_name_to_content[src_basename] = content
 
     search_key = (

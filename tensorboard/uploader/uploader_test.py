@@ -541,10 +541,7 @@ class TensorboardUploaderTest(tf.test.TestCase):
             data = b"".join(r.data for r in requests)
             actual_graph_def = graph_pb2.GraphDef.FromString(data)
             self.assertProtoEquals(expected_graph_def, actual_graph_def)
-            self.assertEqual(
-                set(r.blob_sequence_id for r in requests),
-                {"blob%d" % i},
-            )
+            self.assertEqual({r.blob_sequence_id for r in requests}, {"blob%d" % i})
         self.assertEqual(0, mock_rate_limiter.tick.call_count)
         self.assertEqual(0, mock_tensor_rate_limiter.tick.call_count)
         self.assertEqual(10, mock_blob_rate_limiter.tick.call_count)
@@ -931,17 +928,15 @@ class BatchedRequestSenderTest(tf.test.TestCase):
             allowed_plugins=allowed_plugins,
         )
         builder.send_requests({"": _apply_compat(events)})
-        scalar_requests = [
+        if scalar_requests := [
             c[0][0] for c in mock_client.WriteScalar.call_args_list
-        ]
-        if scalar_requests:
+        ]:
             self.assertLen(scalar_requests, 1)
             self.assertLen(scalar_requests[0].runs, 1)
             scalar_run.MergeFrom(scalar_requests[0].runs[0])
-        tensor_requests = [
+        if tensor_requests := [
             c[0][0] for c in mock_client.WriteTensor.call_args_list
-        ]
-        if tensor_requests:
+        ]:
             self.assertLen(tensor_requests, 1)
             self.assertLen(tensor_requests[0].runs, 1)
             tensor_run.MergeFrom(tensor_requests[0].runs[0])
@@ -1878,8 +1873,7 @@ class DeleteExperimentTest(tf.test.TestCase):
             service_descriptors=[], time=grpc_testing.strict_real_time()
         )
         stub = write_service_pb2_grpc.TensorBoardWriterServiceStub(test_channel)
-        mock_client = mock.create_autospec(stub)
-        return mock_client
+        return mock.create_autospec(stub)
 
     def test_success(self):
         mock_client = _create_mock_client()
@@ -1930,8 +1924,7 @@ class UpdateExperimentMetadataTest(tf.test.TestCase):
             service_descriptors=[], time=grpc_testing.strict_real_time()
         )
         stub = write_service_pb2_grpc.TensorBoardWriterServiceStub(test_channel)
-        mock_client = mock.create_autospec(stub)
-        return mock_client
+        return mock.create_autospec(stub)
 
     def test_success(self):
         mock_client = _create_mock_client()
@@ -2018,8 +2011,7 @@ def _apply_compat(events):
         events = dataclass_compat.migrate_event(
             event, initial_metadata=initial_metadata
         )
-        for event in events:
-            yield event
+        yield from events
 
 
 def _extract_tag_counts(run_proto):

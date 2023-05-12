@@ -175,9 +175,7 @@ class PyRecordReader_New:
             )
         if not gfile.exists(filename):
             raise errors.NotFoundError(
-                None,
-                None,
-                "{} does not point to valid Events file".format(filename),
+                None, None, f"{filename} does not point to valid Events file"
             )
         if start_offset:
             raise errors.UnimplementedError(
@@ -221,7 +219,7 @@ class PyRecordReader_New:
         header_crc_calc = masked_crc32c(header_str)
         if header_crc_calc != crc_header[0]:
             raise errors.DataLossError(
-                None, None, "{} failed header crc32 check".format(self.filename)
+                None, None, f"{self.filename} failed header crc32 check"
             )
 
         # The length of the header tells us how many bytes the Event
@@ -241,9 +239,7 @@ class PyRecordReader_New:
         crc_event = struct.unpack("<I", crc_event_str)
         if event_crc_calc != crc_event[0]:
             raise errors.DataLossError(
-                None,
-                None,
-                "{} failed event crc32 check".format(self.filename),
+                None, None, f"{self.filename} failed event crc32 check"
             )
 
         # Set the current event to be read later by record() call
@@ -278,9 +274,7 @@ class PyRecordReader_New:
 
     def _truncation_error(self, section):
         return errors.DataLossError(
-            None,
-            None,
-            "{} has truncated record in {}".format(self.filename, section),
+            None, None, f"{self.filename} has truncated record in {section}"
         )
 
     def record(self):

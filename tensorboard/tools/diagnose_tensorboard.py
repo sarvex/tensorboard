@@ -92,10 +92,7 @@ def pip(args):
     # Suppress the Python 2.7 deprecation warning.
     PYTHONWARNINGS_KEY = "PYTHONWARNINGS"
     old_pythonwarnings = os.environ.get(PYTHONWARNINGS_KEY)
-    new_pythonwarnings = "%s%s" % (
-        "ignore:DEPRECATION",
-        ",%s" % old_pythonwarnings if old_pythonwarnings else "",
-    )
+    new_pythonwarnings = f'ignore:DEPRECATION{f",{old_pythonwarnings}" if old_pythonwarnings else ""}'
     command = [sys.executable, "-m", "pip", "--disable-pip-version-check"]
     command.extend(args)
     try:
@@ -126,7 +123,7 @@ def sgetattr(attr, default):
     sentinel = object()
     result = getattr(socket, attr, sentinel)
     if result is sentinel:
-        print("socket.%s does not exist" % attr)
+        print(f"socket.{attr} does not exist")
         return default
     else:
         print("socket.%s = %r" % (attr, result))
@@ -239,7 +236,7 @@ def installed_packages():
             frozenset().union(*expect_unique) & packages_set
         )
         commands = [
-            "pip uninstall %s" % " ".join(packages_to_uninstall),
+            f'pip uninstall {" ".join(packages_to_uninstall)}',
             "pip install tensorflow  # or `tensorflow-gpu`, or `tf-nightly`, ...",
         ]
         message = "%s\n\nNamely:\n\n%s" % (
@@ -386,12 +383,11 @@ def stat_tensorboardinfo():
     try:
         stat_result = os.stat(path)
     except OSError as e:
-        if e.errno == errno.ENOENT:
-            # No problem; this is just fine.
-            logging.info(".tensorboard-info directory does not exist")
-            return
-        else:
+        if e.errno != errno.ENOENT:
             raise
+        # No problem; this is just fine.
+        logging.info(".tensorboard-info directory does not exist")
+        return
     logging.info("os.stat(...): %r", stat_result)
     logging.info("mode: 0o%o", stat_result.st_mode)
     if stat_result.st_mode & 0o777 != 0o777:
@@ -406,9 +402,9 @@ def stat_tensorboardinfo():
         # This error should only appear on Unices, so it's okay to use
         # Unix-specific utilities and shell syntax.
         quote = getattr(shlex, "quote", None) or pipes.quote  # Python <3.3
-        command = "chmod 777 %s" % quote(path)
+        command = f"chmod 777 {quote(path)}"
         message = "%s\n\n\t%s" % (preamble, command)
-        yield Suggestion('Fix permissions on "%s"' % path, message)
+        yield Suggestion(f'Fix permissions on "{path}"', message)
 
 
 @check
@@ -473,10 +469,7 @@ def source_trees_without_genfiles():
                     label += " (duplicate underlying directory)"
                 realpaths_seen.add(realpath)
                 roots.append(label)
-            message = "%s\n\n%s" % (
-                preamble,
-                "\n".join("  - %s" % s for s in roots),
-            )
+            message = ("%s\n\n%s" % (preamble, "\n".join(f"  - {s}" for s in roots)))
         yield Suggestion(
             "Avoid `tensorboard` packages without genfiles", message
         )
@@ -517,19 +510,18 @@ def main():
     for (i, check) in enumerate(CHECKS):
         if i > 0:
             print()
-        print("--- check: %s" % check.__name__)
+        print(f"--- check: {check.__name__}")
         try:
             suggestions.extend(check())
         except Exception:
             traceback.print_exc(file=sys.stdout)
-            pass
     print(markdown_code_fence)
     print()
     print("</details>")
 
     for suggestion in suggestions:
         print()
-        print("### Suggestion: %s" % suggestion.headline)
+        print(f"### Suggestion: {suggestion.headline}")
         print()
         print(suggestion.description)
 

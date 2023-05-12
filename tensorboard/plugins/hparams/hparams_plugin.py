@@ -104,7 +104,7 @@ class HParamsPlugin(base_plugin.TBPlugin):
             ).run()
             return http_util.Respond(request, body, mime_type)
         except error.HParamsError as e:
-            logger.error("HParams error: %s" % e)
+            logger.error(f"HParams error: {e}")
             raise werkzeug.exceptions.BadRequest(description=str(e))
 
     # ---- /experiment -----------------------------------------------------------
@@ -128,7 +128,7 @@ class HParamsPlugin(base_plugin.TBPlugin):
                 "application/json",
             )
         except error.HParamsError as e:
-            logger.error("HParams error: %s" % e)
+            logger.error(f"HParams error: {e}")
             raise werkzeug.exceptions.BadRequest(description=str(e))
 
     # ---- /session_groups -------------------------------------------------------
@@ -151,7 +151,7 @@ class HParamsPlugin(base_plugin.TBPlugin):
                 "application/json",
             )
         except error.HParamsError as e:
-            logger.error("HParams error: %s" % e)
+            logger.error(f"HParams error: {e}")
             raise werkzeug.exceptions.BadRequest(description=str(e))
 
     # ---- /metric_evals ---------------------------------------------------------
@@ -163,20 +163,20 @@ class HParamsPlugin(base_plugin.TBPlugin):
             request_proto = _parse_request_argument(
                 request, api_pb2.ListMetricEvalsRequest
             )
-            scalars_plugin = self._get_scalars_plugin()
-            if not scalars_plugin:
+            if scalars_plugin := self._get_scalars_plugin():
+                return http_util.Respond(
+                    request,
+                    json.dumps(
+                        list_metric_evals.Handler(
+                            ctx, request_proto, scalars_plugin, experiment_id
+                        ).run()
+                    ),
+                    "application/json",
+                )
+            else:
                 raise werkzeug.exceptions.NotFound("Scalars plugin not loaded")
-            return http_util.Respond(
-                request,
-                json.dumps(
-                    list_metric_evals.Handler(
-                        ctx, request_proto, scalars_plugin, experiment_id
-                    ).run()
-                ),
-                "application/json",
-            )
         except error.HParamsError as e:
-            logger.error("HParams error: %s" % e)
+            logger.error(f"HParams error: {e}")
             raise werkzeug.exceptions.BadRequest(description=str(e))
 
     def _get_scalars_plugin(self):
@@ -198,6 +198,6 @@ def _parse_request_argument(request, proto_class):
     request_json = request.args.get("request")
     if request_json is None:
         raise error.HParamsError(
-            "Expected a JSON-formatted 'request' arg of type: %s" % proto_class
+            f"Expected a JSON-formatted 'request' arg of type: {proto_class}"
         )
     return json_format.Parse(request_json, proto_class())

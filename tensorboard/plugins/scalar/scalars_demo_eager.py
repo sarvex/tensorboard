@@ -59,7 +59,7 @@ def main(unused_argv):
         "Created %d runs, each with %d tags, and %d scalar values in each tag"
         % (FLAGS.num_runs, FLAGS.num_tags_per_run, FLAGS.num_scalars_per_tag)
     )
-    logging.info("Output saved to %s." % logdir)
+    logging.info(f"Output saved to {logdir}.")
     logging.info(
         """
 You can now view the scalars in this logdir:

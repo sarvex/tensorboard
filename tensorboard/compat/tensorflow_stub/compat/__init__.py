@@ -95,10 +95,7 @@ def as_str_any(value):
     Returns:
     A `str` object.
     """
-    if isinstance(value, bytes):
-        return as_str(value)
-    else:
-        return str(value)
+    return as_str(value) if isinstance(value, bytes) else str(value)
 
 
 # @tf_export('compat.path_to_str')

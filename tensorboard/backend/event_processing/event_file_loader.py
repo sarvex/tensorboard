@@ -97,9 +97,7 @@ class _PyRecordReaderIterator(object):
                 tf.compat.as_bytes(file_path), 0, tf.compat.as_bytes(""), status
             )
         if not self._reader:
-            raise IOError(
-                "Failed to open a record reader pointing to %s" % file_path
-            )
+            raise IOError(f"Failed to open a record reader pointing to {file_path}")
 
     def __iter__(self):
         return self
@@ -188,11 +186,9 @@ class EventFileLoader(LegacyEventFileLoader):
     def Load(self):
         for event in super(EventFileLoader, self).Load():
             event = data_compat.migrate_event(event)
-            events = dataclass_compat.migrate_event(
+            yield from dataclass_compat.migrate_event(
                 event, self._initial_metadata
             )
-            for event in events:
-                yield event
 
 
 class TimestampedEventFileLoader(EventFileLoader):

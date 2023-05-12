@@ -143,8 +143,7 @@ def main():
     keras()
 
     print(
-        "To view results of all graphs in your browser, run `tensorboard --logdir %s`"
-        % LOGDIR
+        f"To view results of all graphs in your browser, run `tensorboard --logdir {LOGDIR}`"
     )
 
 

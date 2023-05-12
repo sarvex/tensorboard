@@ -72,8 +72,7 @@ class Context(object):
           protobuffer can be built (possibly, because the event data has not been
           completely loaded yet), returns an entirely empty experiment.
         """
-        experiment = self._find_experiment_tag(hparams_run_to_tag_to_content)
-        if experiment:
+        if experiment := self._find_experiment_tag(hparams_run_to_tag_to_content):
             return experiment
         return self._compute_experiment_from_runs(
             ctx, experiment_id, hparams_run_to_tag_to_content
@@ -242,11 +241,9 @@ class Context(object):
         # If all values have the same type, then that is the type used.
         # Otherwise, the returned type is DATA_TYPE_STRING.
         result = api_pb2.HParamInfo(name=name, type=api_pb2.DATA_TYPE_UNSET)
-        distinct_values = set(
-            _protobuf_value_to_string(v)
-            for v in values
-            if _protobuf_value_type(v)
-        )
+        distinct_values = {
+            _protobuf_value_to_string(v) for v in values if _protobuf_value_type(v)
+        }
         for v in values:
             v_type = _protobuf_value_type(v)
             if not v_type:
@@ -311,11 +308,11 @@ class Context(object):
           A python list containing pairs. Each pair is a (tag, group) pair
           representing a metric name used in some session.
         """
-        session_runs = set(
+        session_runs = {
             run
             for run, tags in hparams_run_to_tag_to_content.items()
             if metadata.SESSION_START_INFO_TAG in tags
-        )
+        }
         metric_names_set = set()
         scalars_run_to_tag_to_content = self.scalars_metadata(
             ctx, experiment_id
@@ -330,10 +327,7 @@ class Context(object):
             if group == ".":
                 group = ""
             metric_names_set.update((tag, group) for tag in tags)
-        metric_names_list = list(metric_names_set)
-        # Sort metrics for determinism.
-        metric_names_list.sort()
-        return metric_names_list
+        return sorted(metric_names_set)
 
 
 def _find_longest_parent_path(path_set, path):
@@ -378,9 +372,7 @@ def _protobuf_value_type(value):
         return api_pb2.DATA_TYPE_FLOAT64
     if value.HasField("string_value"):
         return api_pb2.DATA_TYPE_STRING
-    if value.HasField("bool_value"):
-        return api_pb2.DATA_TYPE_BOOL
-    return None
+    return api_pb2.DATA_TYPE_BOOL if value.HasField("bool_value") else None
 
 
 def _protobuf_value_to_string(value):
@@ -391,7 +383,4 @@ def _protobuf_value_to_string(value):
         'string' or 'bool'.
     """
     value_in_json = json_format.MessageToJson(value)
-    if value.HasField("string_value"):
-        # Remove the quotations.
-        return value_in_json[1:-1]
-    return value_in_json
+    return value_in_json[1:-1] if value.HasField("string_value") else value_in_json

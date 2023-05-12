@@ -125,7 +125,6 @@ class HistogramsPluginTest(tf.test.TestCase):
         )
         self.assertEqual(
             {
-                # _RUN_WITH_SCALARS omitted: No histogram data.
                 self._RUN_WITH_LEGACY_HISTOGRAM: {
                     self._LEGACY_HISTOGRAM_TAG: {
                         "displayName": self._LEGACY_HISTOGRAM_TAG,
@@ -133,11 +132,10 @@ class HistogramsPluginTest(tf.test.TestCase):
                     },
                 },
                 self._RUN_WITH_HISTOGRAM: {
-                    "%s/histogram_summary"
-                    % self._HISTOGRAM_TAG: {
+                    f"{self._HISTOGRAM_TAG}/histogram_summary": {
                         "displayName": self._DISPLAY_NAME,
                         "description": self._HTML_DESCRIPTION,
-                    },
+                    }
                 },
             },
             plugin.index_impl(context.RequestContext(), experiment="exp"),
@@ -216,8 +214,7 @@ class HistogramsPluginTest(tf.test.TestCase):
 
     def test_histograms_with_histogram(self):
         self._test_histograms(
-            self._RUN_WITH_HISTOGRAM,
-            "%s/histogram_summary" % self._HISTOGRAM_TAG,
+            self._RUN_WITH_HISTOGRAM, f"{self._HISTOGRAM_TAG}/histogram_summary"
         )
 
 

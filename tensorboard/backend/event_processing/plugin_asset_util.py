@@ -98,8 +98,6 @@ def RetrieveAsset(logdir, plugin_name, asset_name):
         with tf.io.gfile.GFile(asset_path, "r") as f:
             return f.read()
     except tf.errors.NotFoundError:
-        raise KeyError("Asset path %s not found" % asset_path)
+        raise KeyError(f"Asset path {asset_path} not found")
     except tf.errors.OpError as e:
-        raise KeyError(
-            "Couldn't read asset path: %s, OpError %s" % (asset_path, e)
-        )
+        raise KeyError(f"Couldn't read asset path: {asset_path}, OpError {e}")

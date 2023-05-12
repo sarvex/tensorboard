@@ -70,19 +70,19 @@ class _FakeAccumulator(object):
     def _TagHelper(self, tag_name, enum):
         if tag_name not in self.Tags()[enum]:
             raise KeyError
-        return ["%s/%s" % (self._path, tag_name)]
+        return [f"{self._path}/{tag_name}"]
 
     def Tensors(self, tag_name):
         return self._TagHelper(tag_name, event_accumulator.TENSORS)
 
     def ActivePlugins(self):
-        return ["%s_plugin" % (self._path,)]
+        return [f"{self._path}_plugin"]
 
     def PluginTagToContent(self, plugin_name):
         # We pre-pend the runs with the path and '_' so that we can verify that the
         # tags are associated with the correct runs.
         return {
-            self._path + "_" + run: content_mapping
+            f"{self._path}_{run}": content_mapping
             for (run, content_mapping) in self._plugin_to_tag_to_content[
                 plugin_name
             ].items()

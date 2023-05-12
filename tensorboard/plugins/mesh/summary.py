@@ -83,17 +83,16 @@ def _get_tensor_summary(
 
 def _get_display_name(name, display_name):
     """Returns display_name from display_name and name."""
-    if display_name is None:
-        return name
-    return display_name
+    return name if display_name is None else display_name
 
 
 def _get_json_config(config_dict):
     """Parses and returns JSON string from python dictionary."""
-    json_config = "{}"
-    if config_dict is not None:
-        json_config = json.dumps(config_dict, sort_keys=True)
-    return json_config
+    return (
+        json.dumps(config_dict, sort_keys=True)
+        if config_dict is not None
+        else "{}"
+    )
 
 
 def op(
@@ -132,10 +131,6 @@ def op(
     display_name = _get_display_name(name, display_name)
     json_config = _get_json_config(config_dict)
 
-    # All tensors representing a single mesh will be represented as separate
-    # summaries internally. Those summaries will be regrouped on the client before
-    # rendering.
-    summaries = []
     tensors = [
         metadata.MeshTensor(
             vertices, plugin_data_pb2.MeshPluginData.VERTEX, tf.float32
@@ -153,24 +148,22 @@ def op(
         [tensor.content_type for tensor in tensors]
     )
 
-    for tensor in tensors:
-        summaries.append(
-            _get_tensor_summary(
-                name,
-                display_name,
-                description,
-                tensor.data,
-                tensor.content_type,
-                components,
-                json_config,
-                collections,
-            )
+    summaries = [
+        _get_tensor_summary(
+            name,
+            display_name,
+            description,
+            tensor.data,
+            tensor.content_type,
+            components,
+            json_config,
+            collections,
         )
-
-    all_summaries = tf.compat.v1.summary.merge(
+        for tensor in tensors
+    ]
+    return tf.compat.v1.summary.merge(
         summaries, collections=collections, name=name
     )
-    return all_summaries
 
 
 def pb(

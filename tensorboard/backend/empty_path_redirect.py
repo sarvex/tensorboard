@@ -38,8 +38,7 @@ class EmptyPathRedirectMiddleware(object):
         self._application = application
 
     def __call__(self, environ, start_response):
-        path = environ.get("PATH_INFO", "")
-        if path:
+        if path := environ.get("PATH_INFO", ""):
             return self._application(environ, start_response)
         location = environ.get("SCRIPT_NAME", "") + "/"
         start_response("301 Moved Permanently", [("Location", location)])

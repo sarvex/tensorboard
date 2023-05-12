@@ -24,6 +24,7 @@ because it's supported by all desktop browsers except Internet Explorer.
 Safari support requires Mac OS X Sierra or later.
 """
 
+
 import hashlib
 import httplib
 import os
@@ -83,7 +84,7 @@ flags.DEFINE_string(
 )
 FLAGS = flags.FLAGS
 
-BAR = "/%s/" % ("*" * 78)
+BAR = f'/{"*" * 78}/'
 NON_REPO_PATTERN = re.compile(r"[^_a-z0-9]")
 SCHEME_PATTERN = re.compile(r"https?://")
 CSS_PATTERN = re.compile(
@@ -151,32 +152,29 @@ def get_extra_build_file_content(html):
         'load("@io_bazel_rules_closure//closure:defs.bzl", "web_library")',
         "",
         "web_library(",
-        '    name = "%s",' % FLAGS.repo,
-        '    path = "%s",' % os.path.dirname(FLAGS.path),
+        f'    name = "{FLAGS.repo}",',
+        f'    path = "{os.path.dirname(FLAGS.path)}",',
         "    srcs = [",
-        '        "%s",' % os.path.basename(FLAGS.path),
+        f'        "{os.path.basename(FLAGS.path)}",',
         '        ":files",',
         "    ],",
         ")",
         "",
         "genrule(",
         '    name = "html",',
-        '    outs = ["%s"],' % os.path.basename(FLAGS.path),
+        f'    outs = ["{os.path.basename(FLAGS.path)}"],',
         '    cmd = "\\n".join([',
         "        \"cat <<'EOF' >$@\",",
     ]
     add_inline_file(result, html)
-    result.append('        "EOF",')
-    result.append("    ]),")
-    result.append(")")
+    result.extend(('        "EOF",', "    ]),", ")"))
     return result
 
 
 def main(unused_argv=None):
     assets = []
     for url in FLAGS.urls.split(";"):
-        for m in CSS_PATTERN.finditer(open_url(url).read()):
-            assets.append(m)
+        assets.extend(iter(CSS_PATTERN.finditer(open_url(url).read())))
     assets.sort(
         key=lambda m: (m.group("family"), m.group("name"), m.group("language"))
     )

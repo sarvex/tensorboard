@@ -71,10 +71,11 @@ def _write_summary(
 
 def _get_json_config(config_dict):
     """Parses and returns JSON string from python dictionary."""
-    json_config = "{}"
-    if config_dict is not None:
-        json_config = json.dumps(config_dict, sort_keys=True)
-    return json_config
+    return (
+        json.dumps(config_dict, sort_keys=True)
+        if config_dict is not None
+        else "{}"
+    )
 
 
 def mesh(

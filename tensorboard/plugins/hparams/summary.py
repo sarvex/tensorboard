@@ -136,8 +136,7 @@ def session_start_pb(
             session_start_info.hparams[hp_name].string_value = str(hp_val)
         else:
             raise TypeError(
-                "hparams[%s]=%s has type: %s which is not supported"
-                % (hp_name, hp_val, type(hp_val))
+                f"hparams[{hp_name}]={hp_val} has type: {type(hp_val)} which is not supported"
             )
     return _summary(
         metadata.SESSION_START_INFO_TAG,

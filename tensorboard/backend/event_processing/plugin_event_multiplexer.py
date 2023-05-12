@@ -162,9 +162,8 @@ class EventMultiplexer(object):
                 )
                 self._accumulators[name] = accumulator
                 self._paths[name] = path
-        if accumulator:
-            if self._reload_called:
-                accumulator.Reload()
+        if accumulator and self._reload_called:
+            accumulator.Reload()
         return self
 
     def AddRunsFromDirectory(self, path, name=None):

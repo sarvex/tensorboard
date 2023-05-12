@@ -90,7 +90,7 @@ class TensorBoardExporterTest(tb_test.TestCase):
                     response = export_service_pb2.StreamExperimentDataResponse()
                     response.run_name = run
                     response.tag_name = tag
-                    display_name = "%s:%s" % (request.experiment_id, tag)
+                    display_name = f"{request.experiment_id}:{tag}"
                     response.tag_metadata.CopyFrom(
                         test_util.scalar_metadata(display_name)
                     )
@@ -223,7 +223,7 @@ class TensorBoardExporterTest(tb_test.TestCase):
         expected_summary_metadata = test_util.scalar_metadata("456:accuracy")
         self.assertEqual(summary_metadata, expected_summary_metadata)
         points = datum.pop("points")
-        expected_steps = [x for x in range(10)]
+        expected_steps = list(range(10))
         expected_values = [2.0 * x for x in range(10)]
         expected_wall_times = [1571084520.862939144 + x for x in range(10)]
         self.assertEqual(points.pop("steps"), expected_steps)
@@ -272,7 +272,7 @@ class TensorBoardExporterTest(tb_test.TestCase):
                     response = export_service_pb2.StreamExperimentDataResponse()
                     response.run_name = run
                     response.tag_name = tag
-                    display_name = "%s:%s" % (request.experiment_id, tag)
+                    display_name = f"{request.experiment_id}:{tag}"
                     response.tag_metadata.CopyFrom(
                         test_util.scalar_metadata(display_name)
                     )
@@ -479,7 +479,7 @@ class TensorBoardExporterTest(tb_test.TestCase):
                 response = export_service_pb2.StreamExperimentDataResponse()
                 response.run_name = run
                 response.tag_name = tag
-                display_name = "%s:%s" % (request.experiment_id, tag)
+                display_name = f"{request.experiment_id}:{tag}"
                 response.tag_metadata.CopyFrom(
                     summary_pb2.SummaryMetadata(
                         data_class=summary_pb2.DATA_CLASS_BLOB_SEQUENCE
@@ -494,7 +494,7 @@ class TensorBoardExporterTest(tb_test.TestCase):
                     if run == "train":
                         # A finished blob sequence.
                         blob = blob_pb2.Blob(
-                            blob_id="%s_blob" % run,
+                            blob_id=f"{run}_blob",
                             state=blob_pb2.BlobState.BLOB_STATE_CURRENT,
                         )
                         blob_sequence.entries.append(
@@ -877,8 +877,7 @@ def _create_mock_api_client():
         service_descriptors=[], time=grpc_testing.strict_real_time()
     )
     stub = export_service_pb2_grpc.TensorBoardExporterServiceStub(test_channel)
-    mock_api_client = mock.create_autospec(stub)
-    return mock_api_client
+    return mock.create_autospec(stub)
 
 
 if __name__ == "__main__":

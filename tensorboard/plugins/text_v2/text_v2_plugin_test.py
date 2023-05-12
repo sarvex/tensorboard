@@ -70,15 +70,12 @@ class TextPluginTest(tf.test.TestCase):
             writer = tf.compat.v2.summary.create_file_writer(subdir)
 
             with writer.as_default():
-                step = 0
-                for gem in GEMS:
-                    message = run_name + " *loves* " + gem
+                for step, gem in enumerate(GEMS):
+                    message = f"{run_name} *loves* {gem}"
                     if include_text:
                         text("message", message, step)
-                    step += 1
-
-                vector_message = ["one", "two", "three", "four"]
                 if include_text:
+                    vector_message = ["one", "two", "three", "four"]
                     text("vector", vector_message, 0)
 
                 scalar("twelve", tf.constant(12), 0)

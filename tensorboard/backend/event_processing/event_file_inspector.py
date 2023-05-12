@@ -223,7 +223,7 @@ def get_unique_tags(field_to_obs):
       maps to an empty list so that we can render this to console.
     """
     return {
-        field: sorted(set([x.get("tag", "") for x in observations]))
+        field: sorted({x.get("tag", "") for x in observations})
         for field, observations in field_to_obs.items()
         if field in TAG_FIELDS
     }
@@ -239,12 +239,12 @@ def print_dict(d, show_missing=True):
     for k, v in sorted(d.items()):
         if (not v) and show_missing:
             # No instances of the key, so print missing symbol.
-            print("{} -".format(k))
+            print(f"{k} -")
         elif isinstance(v, list):
             # Value is a list, so print each item of the list.
             print(k)
             for item in v:
-                print("   {}".format(item))
+                print(f"   {item}")
         elif isinstance(v, dict):
             # Value is a dict, so print each (key, value) pair of the dict.
             print(k)
@@ -329,7 +329,7 @@ def generators_from_logdir(logdir):
       List of event generators for each subdirectory with event files.
     """
     subdirs = io_wrapper.GetLogdirSubdirectories(logdir)
-    generators = [
+    return [
         itertools.chain(
             *[
                 generator_from_event_file(os.path.join(subdir, f))
@@ -339,7 +339,6 @@ def generators_from_logdir(logdir):
         )
         for subdir in subdirs
     ]
-    return generators
 
 
 def generator_from_event_file(event_file):
@@ -392,12 +391,10 @@ def get_inspection_units(logdir="", event_file="", tag=""):
             )
         elif io_wrapper.IsTensorFlowEventsFile(logdir):
             print(
-                "It seems that {} may be an event file instead of a logdir. If this "
-                "is the case, use --event_file instead of --logdir to pass "
-                "it in.".format(logdir)
+                f"It seems that {logdir} may be an event file instead of a logdir. If this is the case, use --event_file instead of --logdir to pass it in."
             )
         else:
-            print("No event files found within logdir {}".format(logdir))
+            print(f"No event files found within logdir {logdir}")
         return inspection_units
     elif event_file:
         generator = generator_from_event_file(event_file)
@@ -431,14 +428,14 @@ def inspect(logdir="", event_file="", tag=""):
 
     for unit in inspection_units:
         if tag:
-            print("Event statistics for tag {} in {}:".format(tag, unit.name))
+            print(f"Event statistics for tag {tag} in {unit.name}:")
         else:
             # If the user is not inspecting a particular tag, also print the list of
             # all available tags that they can query.
-            print("These tags are in {}:".format(unit.name))
+            print(f"These tags are in {unit.name}:")
             print_dict(get_unique_tags(unit.field_to_obs))
             print(PRINT_SEPARATOR)
-            print("Event statistics for {}:".format(unit.name))
+            print(f"Event statistics for {unit.name}:")
 
         print_dict(get_dict_to_print(unit.field_to_obs), show_missing=(not tag))
         print(PRINT_SEPARATOR)

@@ -86,10 +86,7 @@ def data_source_from_info(info):
       A human-readable string describing the logdir or database connection
       used by the server: e.g., "logdir /tmp/logs".
     """
-    if info.db:
-        return "db %s" % info.db
-    else:
-        return "logdir %s" % info.logdir
+    return f"db {info.db}" if info.db else f"logdir {info.logdir}"
 
 
 def _info_to_string(info):
@@ -149,8 +146,7 @@ def _info_from_string(info_string):
         raise ValueError("not a JSON object: %r" % (json_value,))
     expected_keys = frozenset(_TENSORBOARD_INFO_FIELDS)
     actual_keys = frozenset(json_value)
-    missing_keys = expected_keys - actual_keys
-    if missing_keys:
+    if missing_keys := expected_keys - actual_keys:
         raise ValueError(
             "TensorBoardInfo missing keys: %r" % (sorted(missing_keys),)
         )
@@ -230,9 +226,7 @@ def _get_info_dir():
     try:
         os.makedirs(path)
     except OSError as e:
-        if e.errno == errno.EEXIST and os.path.isdir(path):
-            pass
-        else:
+        if e.errno != errno.EEXIST or not os.path.isdir(path):
             raise
     else:
         os.chmod(path, 0o777)
@@ -274,11 +268,7 @@ def remove_info_file():
     try:
         os.unlink(_get_info_file_path())
     except OSError as e:
-        if e.errno == errno.ENOENT:
-            # The user may have wiped their temporary directory or something.
-            # Not a problem: we're already in the state that we want to be in.
-            pass
-        else:
+        if e.errno != errno.ENOENT:
             raise
 
 
@@ -402,8 +392,7 @@ def start(arguments, timeout=datetime.timedelta(seconds=60)):
         arguments=arguments,
         configure_kwargs={},
     )
-    match = _find_matching_instance(this_cache_key)
-    if match:
+    if match := _find_matching_instance(this_cache_key):
         return StartReused(info=match)
 
     (stdout_fd, stdout_path) = tempfile.mkstemp(prefix=".tensorboard-stdout-")
@@ -433,8 +422,7 @@ def start(arguments, timeout=datetime.timedelta(seconds=60)):
                 stdout=_maybe_read_file(stdout_path),
                 stderr=_maybe_read_file(stderr_path),
             )
-        info = _find_matching_instance(this_cache_key)
-        if info:
+        if info := _find_matching_instance(this_cache_key):
             # Don't check that `info.pid == p.pid`, since on Windows that may
             # not be the case: see #4300.
             return StartLaunched(info=info)

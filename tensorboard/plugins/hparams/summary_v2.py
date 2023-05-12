@@ -218,10 +218,7 @@ def _normalize_numpy_value(value):
     Returns:
       A Python scalar equivalent to `value`.
     """
-    if isinstance(value, np.generic):
-        return value.item()
-    else:
-        return value
+    return value.item() if isinstance(value, np.generic) else value
 
 
 def _derive_session_group_name(trial_id, hparams):
@@ -315,7 +312,7 @@ class HParam(object):
             ("description", self._description),
         ]
         fields_string = ", ".join("%s=%r" % (k, v) for (k, v) in fields)
-        return "HParam(%s)" % fields_string
+        return f"HParam({fields_string})"
 
     @property
     def name(self):
@@ -396,7 +393,7 @@ class IntInterval(Domain):
         self._max_value = max_value
 
     def __str__(self):
-        return "[%s, %s]" % (self._min_value, self._max_value)
+        return f"[{self._min_value}, {self._max_value}]"
 
     def __repr__(self):
         return "IntInterval(%r, %r)" % (self._min_value, self._max_value)
@@ -448,7 +445,7 @@ class RealInterval(Domain):
         self._max_value = max_value
 
     def __str__(self):
-        return "[%s, %s]" % (self._min_value, self._max_value)
+        return f"[{self._min_value}, {self._max_value}]"
 
     def __repr__(self):
         return "RealInterval(%r, %r)" % (self._min_value, self._max_value)

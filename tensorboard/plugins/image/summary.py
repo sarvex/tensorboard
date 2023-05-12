@@ -154,7 +154,7 @@ def pb(name, images, max_outputs=3, display_name=None, description=None):
 
     summary = tf.Summary()
     summary.value.add(
-        tag="%s/image_summary" % name,
+        tag=f"{name}/image_summary",
         metadata=tf_summary_metadata,
         tensor=tensor,
     )

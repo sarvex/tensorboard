@@ -198,28 +198,24 @@ class Handler(object):
             (run, tag) = metrics.run_tag_from_session_and_metric(
                 session_name, metric_name
             )
-            datum = all_metric_evals.get(run, {}).get(tag)
-            if not datum:
-                # It's ok if we don't find the metric in the session.
-                # We skip it here. For filtering and sorting purposes its value is None.
-                continue
-            result.append(
-                api_pb2.MetricValue(
-                    name=metric_name,
-                    wall_time_secs=datum.wall_time,
-                    training_step=datum.step,
-                    value=datum.value,
+            if datum := all_metric_evals.get(run, {}).get(tag):
+                result.append(
+                    api_pb2.MetricValue(
+                        name=metric_name,
+                        wall_time_secs=datum.wall_time,
+                        training_step=datum.step,
+                        value=datum.value,
+                    )
                 )
-            )
         return result
 
     def _aggregate_metrics(self, session_group):
         """Sets the metrics of the group based on aggregation_type."""
 
-        if (
-            self._request.aggregation_type == api_pb2.AGGREGATION_AVG
-            or self._request.aggregation_type == api_pb2.AGGREGATION_UNSET
-        ):
+        if self._request.aggregation_type in [
+            api_pb2.AGGREGATION_AVG,
+            api_pb2.AGGREGATION_UNSET,
+        ]:
             _set_avg_session_metrics(session_group)
         elif self._request.aggregation_type == api_pb2.AGGREGATION_MEDIAN:
             _set_median_session_metrics(
@@ -235,8 +231,7 @@ class Handler(object):
             )
         else:
             raise error.HParamsError(
-                "Unknown aggregation_type in request: %s"
-                % self._request.aggregation_type
+                f"Unknown aggregation_type in request: {self._request.aggregation_type}"
             )
 
     def _filter(self, session_groups):
@@ -276,9 +271,7 @@ class Handler(object):
                     reverse=True,
                 )
             else:
-                raise error.HParamsError(
-                    "Unknown col_param.order given: %s" % col_param
-                )
+                raise error.HParamsError(f"Unknown col_param.order given: {col_param}")
 
     def _create_response(self, session_groups):
         return api_pb2.ListSessionGroupsResponse(
@@ -331,10 +324,7 @@ def _create_extractors(col_params):
       returned list extracts the column corresponding to the ith element of
       _request.col_params
     """
-    result = []
-    for col_param in col_params:
-        result.append(_create_extractor(col_param))
-    return result
+    return [_create_extractor(col_param) for col_param in col_params]
 
 
 def _create_extractor(col_param):
@@ -344,8 +334,7 @@ def _create_extractor(col_param):
         return _create_hparam_extractor(col_param.hparam)
     else:
         raise error.HParamsError(
-            'Got ColParam with both "metric" and "hparam" fields unset: %s'
-            % col_param
+            f'Got ColParam with both "metric" and "hparam" fields unset: {col_param}'
         )
 
 
@@ -430,8 +419,7 @@ def _create_filters(col_params, extractors):
     """
     result = []
     for col_param, extractor in zip(col_params, extractors):
-        a_filter = _create_filter(col_param, extractor)
-        if a_filter:
+        if a_filter := _create_filter(col_param, extractor):
             result.append(a_filter)
     return result
 
@@ -467,9 +455,7 @@ def _create_filter(col_param, extractor):
 
     def filter_fn(session_group):
         value = extractor(session_group)
-        if value is None:
-            return include_missing_values
-        return value_filter_fn(value)
+        return include_missing_values if value is None else value_filter_fn(value)
 
     return filter_fn
 
@@ -492,8 +478,7 @@ def _create_regexp_filter(regex):
     def filter_fn(value):
         if not isinstance(value, str):
             raise error.HParamsError(
-                "Cannot use a regexp filter for a value of type %s. Value: %s"
-                % (type(value), value)
+                f"Cannot use a regexp filter for a value of type {type(value)}. Value: {value}"
             )
         return re.search(compiled_regex, value) is not None
 
@@ -513,8 +498,7 @@ def _create_interval_filter(interval):
     def filter_fn(value):
         if not isinstance(value, (int, float)):
             raise error.HParamsError(
-                "Cannot use an interval filter for a value of type: %s, Value: %s"
-                % (type(value), value)
+                f"Cannot use an interval filter for a value of type: {type(value)}, Value: {value}"
             )
         return interval.min_value <= value and value <= interval.max_value
 
@@ -550,7 +534,7 @@ def _value_to_python(value):
     elif field == "bool_value":
         return value.bool_value
     else:
-        raise ValueError("Unknown struct_pb2.Value oneof field set: %s" % field)
+        raise ValueError(f"Unknown struct_pb2.Value oneof field set: {field}")
 
 
 # As protobuffers are mutable we can't use MetricName directly as a dict's key.
@@ -700,7 +684,5 @@ def _measurements(session_group, metric_name):
       The next metric value wrapped in a _Measurement instance.
     """
     for session_index, session in enumerate(session_group.sessions):
-        metric_value = _find_metric_value(session, metric_name)
-        if not metric_value:
-            continue
-        yield _Measurement(metric_value, session_index)
+        if metric_value := _find_metric_value(session, metric_name):
+            yield _Measurement(metric_value, session_index)

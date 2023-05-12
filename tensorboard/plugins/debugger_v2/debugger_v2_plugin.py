@@ -99,9 +99,7 @@ class DebuggerV2Plugin(base_plugin.TBPlugin):
     def serve_runs(self, request):
         experiment = plugin_util.experiment_id(request.environ)
         runs = self._data_provider.list_runs(experiment_id=experiment)
-        run_listing = dict()
-        for run in runs:
-            run_listing[run.run_id] = {"start_time": run.start_time}
+        run_listing = {run.run_id: {"start_time": run.start_time} for run in runs}
         return http_util.Respond(request, run_listing, "application/json")
 
     @wrappers.Request.application

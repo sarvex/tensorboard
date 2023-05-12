@@ -87,13 +87,10 @@ class Handler(object):
                 return value.number_value
             if value.HasField("string_value"):
                 return value.string_value
-            if value.HasField("bool_value"):
-                return value.bool_value
-            # hyperparameter values can be optional in a session group
-            return ""
+            return value.bool_value if value.HasField("bool_value") else ""
 
         def _get_metric_id(metric):
-            return metric.group + "." + metric.tag
+            return f"{metric.group}.{metric.tag}"
 
         for group in session_groups.session_groups:
             row = []
@@ -130,7 +127,7 @@ class Handler(object):
                             coefficient,
                             int(exponent),
                         )
-                    return "$%s$" % scientific
+                    return f"${scientific}$"
                 return value.replace("_", "\\_").replace("%", "\\%")
 
             mime_type = "application/x-latex"
@@ -153,7 +150,5 @@ class Handler(object):
             body = string_io.getvalue()
             mime_type = "text/csv"
         else:
-            raise error.HParamsError(
-                "Invalid reponses format: %s" % response_format
-            )
+            raise error.HParamsError(f"Invalid reponses format: {response_format}")
         return body, mime_type

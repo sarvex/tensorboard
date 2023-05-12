@@ -426,11 +426,11 @@ class ApplicationTest(tb_test.TestCase):
         )
 
         for name in ["bazz", "baz "]:
-            response = self.server.get("/data/plugin_entry.html?name=%s" % name)
+            response = self.server.get(f"/data/plugin_entry.html?name={name}")
             self.assertEqual(404, response.status_code)
 
         for name in ["foo", "bar"]:
-            response = self.server.get("/data/plugin_entry.html?name=%s" % name)
+            response = self.server.get(f"/data/plugin_entry.html?name={name}")
             self.assertEqual(400, response.status_code)
             self.assertEqual(
                 response.get_data().decode("utf-8"),
@@ -518,7 +518,7 @@ class ApplicationBaseUrlTest(tb_test.TestCase):
 
     def testBaseUrlRequestNonexistentPage(self):
         """Request a page that doesn't exist; it should 404."""
-        response = self.server.get(self.path_prefix + "/asdf")
+        response = self.server.get(f"{self.path_prefix}/asdf")
         self.assertEqual(404, response.status_code)
 
     def testBaseUrlNonexistentPluginsListing(self):
@@ -528,9 +528,7 @@ class ApplicationBaseUrlTest(tb_test.TestCase):
 
     def testPluginsListing(self):
         """Test the format of the data/plugins_listing endpoint."""
-        parsed_object = self._get_json(
-            self.path_prefix + "/data/plugins_listing"
-        )
+        parsed_object = self._get_json(f"{self.path_prefix}/data/plugins_listing")
         self.assertEqual(
             parsed_object,
             {
@@ -735,7 +733,7 @@ class TensorBoardPluginsTest(tb_test.TestCase):
         if header_auth is None:
             response = "hello world"
         else:
-            response = "%s access granted" % (header_auth,)
+            response = f"{header_auth} access granted"
         return wrappers.Response(response=response, status=200)
 
     def _bar_handler(self):
@@ -749,10 +747,10 @@ class TensorBoardPluginsTest(tb_test.TestCase):
 
     @wrappers.Request.application
     def _wildcard_handler(self, request):
-        if request.path == "/data/plugin/bar/wildcard/ok":
-            return wrappers.Response(response="hello world", status=200)
-        elif request.path == "/data/plugin/bar/wildcard/":
-            # this route cannot actually be hit; see testEmptyWildcardRouteWithSlash.
+        if request.path in [
+            "/data/plugin/bar/wildcard/ok",
+            "/data/plugin/bar/wildcard/",
+        ]:
             return wrappers.Response(response="hello world", status=200)
         else:
             return wrappers.Response(status=401)

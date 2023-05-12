@@ -72,15 +72,13 @@ def register_filesystem(prefix, filesystem):
 def get_filesystem(filename):
     """Return the registered filesystem for the given file."""
     filename = compat.as_str_any(filename)
-    prefix = ""
     index = filename.find("://")
-    if index >= 0:
-        prefix = filename[:index]
+    prefix = filename[:index] if index >= 0 else ""
     fs = _REGISTERED_FILESYSTEMS.get(prefix, None)
     if fs is None:
         fs = _get_fsspec_filesystem(filename)
     if fs is None:
-        raise ValueError("No recognized filesystem for prefix %s" % prefix)
+        raise ValueError(f"No recognized filesystem for prefix {prefix}")
     return fs
 
 
@@ -123,7 +121,7 @@ class LocalFileSystem(object):
         encoding = None if binary_mode else "utf8"
         if not exists(filename):
             raise errors.NotFoundError(
-                None, None, "Not Found: " + compat.as_text(filename)
+                None, None, f"Not Found: {compat.as_text(filename)}"
             )
         offset = None
         if continue_from is not None:
@@ -234,9 +232,7 @@ class S3FileSystem(object):
         client = boto3.client("s3", endpoint_url=self._s3_endpoint)
         bucket, path = self.bucket_and_path(filename)
         r = client.list_objects(Bucket=bucket, Prefix=path, Delimiter="/")
-        if r.get("Contents") or r.get("CommonPrefixes"):
-            return True
-        return False
+        return bool(r.get("Contents") or r.get("CommonPrefixes"))
 
     def join(self, path, *paths):
         """Join paths with a slash."""
@@ -266,22 +262,11 @@ class S3FileSystem(object):
         bucket, path = self.bucket_and_path(filename)
         args = {}
 
-        # For the S3 case, we use continuation tokens of the form
-        # {byte_offset: number}
-        offset = 0
-        if continue_from is not None:
-            offset = continue_from.get("byte_offset", 0)
-
-        endpoint = ""
-        if size is not None:
-            # TODO(orionr): This endpoint risks splitting a multi-byte
-            # character or splitting \r and \n in the case of CRLFs,
-            # producing decoding errors below.
-            endpoint = offset + size
-
+        offset = 0 if continue_from is None else continue_from.get("byte_offset", 0)
+        endpoint = offset + size if size is not None else ""
         if offset != 0 or endpoint != "":
             # Asked for a range, so modify the request
-            args["Range"] = "bytes={}-{}".format(offset, endpoint)
+            args["Range"] = f"bytes={offset}-{endpoint}"
 
         try:
             stream = s3.Object(bucket, path).get(**args)["Body"].read()
@@ -298,7 +283,7 @@ class S3FileSystem(object):
                     # Asked for no bytes, so just return empty
                     stream = b""
                 else:
-                    args["Range"] = "bytes={}-{}".format(offset, endpoint)
+                    args["Range"] = f"bytes={offset}-{endpoint}"
                     stream = s3.Object(bucket, path).get(**args)["Body"].read()
             else:
                 raise
@@ -335,9 +320,7 @@ class S3FileSystem(object):
         star_i = filename.find("*")
         quest_i = filename.find("?")
         if quest_i >= 0:
-            raise NotImplementedError(
-                "{} not supported by compat glob".format(filename)
-            )
+            raise NotImplementedError(f"{filename} not supported by compat glob")
         if star_i != len(filename) - 1:
             # Just return empty so we can use glob from directory watcher
             #
@@ -352,8 +335,7 @@ class S3FileSystem(object):
         keys = []
         for r in p.paginate(Bucket=bucket, Prefix=path):
             for o in r.get("Contents", []):
-                key = o["Key"][len(path) :]
-                if key:  # Skip the base dir, which would add an empty string
+                if key := o["Key"][len(path) :]:
                     keys.append(filename + key)
         return keys
 
@@ -364,9 +346,7 @@ class S3FileSystem(object):
         if not path.endswith("/"):
             path += "/"  # This will now only retrieve subdir content
         r = client.list_objects(Bucket=bucket, Prefix=path, Delimiter="/")
-        if r.get("Contents") or r.get("CommonPrefixes"):
-            return True
-        return False
+        return bool(r.get("Contents") or r.get("CommonPrefixes"))
 
     def listdir(self, dirname):
         """Returns a list of entries contained within a directory."""
@@ -381,8 +361,7 @@ class S3FileSystem(object):
                 o["Prefix"][len(path) : -1] for o in r.get("CommonPrefixes", [])
             )
             for o in r.get("Contents", []):
-                key = o["Key"][len(path) :]
-                if key:  # Skip the base dir, which would add an empty string
+                if key := o["Key"][len(path) :]:
                     keys.append(key)
         return keys
 
@@ -436,9 +415,7 @@ class FSSpecFileSystem(object):
                 raise errors.InvalidArgumentError(
                     None,
                     None,
-                    "fsspec URL must only have paths in the last chained filesystem, got {}".format(
-                        path
-                    ),
+                    f"fsspec URL must only have paths in the last chained filesystem, got {path}",
                 )
 
     def _translate_errors(func):
@@ -517,16 +494,12 @@ class FSSpecFileSystem(object):
         encoding = None if binary_mode else "utf8"
         if not exists(filename):
             raise errors.NotFoundError(
-                None, None, "Not Found: " + compat.as_text(filename)
+                None, None, f"Not Found: {compat.as_text(filename)}"
             )
         with fs.open(path, mode, encoding=encoding) as f:
             if continue_from is not None:
                 if not f.seekable():
-                    raise errors.InvalidArgumentError(
-                        None,
-                        None,
-                        "{} is not seekable".format(filename),
-                    )
+                    raise errors.InvalidArgumentError(None, None, f"{filename} is not seekable")
                 offset = continue_from.get("opaque_offset", None)
                 if offset is not None:
                     f.seek(offset)
@@ -641,10 +614,7 @@ def _get_fsspec_filesystem(filename):
 
     segment = filename.partition(FSSpecFileSystem.CHAIN_SEPARATOR)[0]
     protocol = segment.partition(FSSpecFileSystem.SEPARATOR)[0]
-    if fsspec.get_filesystem_class(protocol):
-        return _FSSPEC_FILESYSTEM
-    else:
-        return None
+    return _FSSPEC_FILESYSTEM if fsspec.get_filesystem_class(protocol) else None
 
 
 register_filesystem("", LocalFileSystem())
@@ -657,9 +627,7 @@ class GFile(object):
 
     def __init__(self, filename, mode):
         if mode not in ("r", "rb", "br", "w", "wb", "bw"):
-            raise NotImplementedError(
-                "mode {} not supported by compat GFile".format(mode)
-            )
+            raise NotImplementedError(f"mode {mode} not supported by compat GFile")
         self.filename = compat.as_bytes(filename)
         self.fs = get_filesystem(self.filename)
         self.fs_supports_append = hasattr(self.fs, "append")
@@ -711,17 +679,16 @@ class GFile(object):
 
         result = None
         if self.buff and len(self.buff) > self.buff_offset:
-            # read from local buffer
-            if n is not None:
+            if n is None:
+                # add all local buffer and update offsets
+                result = self._read_buffer_to_offset(len(self.buff))
+
+            else:
                 chunk = self._read_buffer_to_offset(self.buff_offset + n)
                 if len(chunk) == n:
                     return chunk
                 result = chunk
                 n -= len(chunk)
-            else:
-                # add all local buffer and update offsets
-                result = self._read_buffer_to_offset(len(self.buff))
-
         # read from filesystem
         read_size = max(self.buff_chunk_size, n) if n is not None else None
         (self.buff, self.continuation_token) = self.fs.read(
@@ -779,25 +746,19 @@ class GFile(object):
             if not self.buff:
                 # read one unit into the buffer
                 line = self.read(1)
-                if line and (line[-1] == "\n" or not self.buff):
-                    return line
-                if not self.buff:
-                    raise StopIteration()
             else:
                 index = self.buff.find("\n", self.buff_offset)
                 if index != -1:
                     # include line until now plus newline
                     chunk = self.read(index + 1 - self.buff_offset)
-                    line = line + chunk if line else chunk
-                    return line
-
+                    return line + chunk if line else chunk
                 # read one unit past end of buffer
                 chunk = self.read(len(self.buff) + 1 - self.buff_offset)
                 line = line + chunk if line else chunk
-                if line and (line[-1] == "\n" or not self.buff):
-                    return line
-                if not self.buff:
-                    raise StopIteration()
+            if line and (line[-1] == "\n" or not self.buff):
+                return line
+            if not self.buff:
+                raise StopIteration()
 
     def next(self):
         return self.__next__()
@@ -808,16 +769,15 @@ class GFile(object):
                 None, None, "File already closed"
             )
 
-        if not self.fs_supports_append:
-            if self.write_temp is not None:
-                # read temp file from the beginning
-                self.write_temp.flush()
-                self.write_temp.seek(0)
-                chunk = self.write_temp.read()
-                if chunk is not None:
-                    # write full contents and keep in temp file
-                    self.fs.write(self.filename, chunk, self.binary_mode)
-                    self.write_temp.seek(len(chunk))
+        if not self.fs_supports_append and self.write_temp is not None:
+            # read temp file from the beginning
+            self.write_temp.flush()
+            self.write_temp.seek(0)
+            chunk = self.write_temp.read()
+            if chunk is not None:
+                # write full contents and keep in temp file
+                self.fs.write(self.filename, chunk, self.binary_mode)
+                self.write_temp.seek(len(chunk))
 
     def close(self):
         self.flush()
@@ -943,9 +903,7 @@ def walk(top, topdown=True, onerror=None):
 
     for subdir in subdirs:
         joined_subdir = fs.join(top, compat.as_str_any(subdir))
-        for subitem in walk(joined_subdir, topdown, onerror=onerror):
-            yield subitem
-
+        yield from walk(joined_subdir, topdown, onerror=onerror)
     if not topdown:
         yield here
 
@@ -996,8 +954,5 @@ def _read_file_to_string(filename, binary_mode=False):
       errors.OpError: Raises variety of errors that are subtypes e.g.
       `NotFoundError` etc.
     """
-    if binary_mode:
-        f = GFile(filename, mode="rb")
-    else:
-        f = GFile(filename, mode="r")
+    f = GFile(filename, mode="rb") if binary_mode else GFile(filename, mode="r")
     return f.read()

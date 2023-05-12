@@ -42,9 +42,7 @@ class BasicTest(unittest.TestCase):
         binary = os.path.join(
             src_dir, "org_tensorflow_tensorboard/tensorboard/tensorboard"
         )
-        cls.logdir = tempfile.mkdtemp(
-            prefix="core_test_%s_logdir_" % cls.__name__
-        )
+        cls.logdir = tempfile.mkdtemp(prefix=f"core_test_{cls.__name__}_logdir_")
         cls.setUpData()
         cls.port = _BASE_PORT + _PORT_OFFSETS[cls]
         cls.process = subprocess.Popen(
@@ -63,7 +61,7 @@ class BasicTest(unittest.TestCase):
 
     def setUp(self):
         self.driver = webtest.new_webdriver_session()
-        self.driver.get("http://localhost:%s" % self.port)
+        self.driver.get(f"http://localhost:{self.port}")
         self.wait = wait.WebDriverWait(self.driver, 10)
 
     def tearDown(self):

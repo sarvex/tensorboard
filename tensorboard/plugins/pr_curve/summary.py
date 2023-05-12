@@ -515,7 +515,7 @@ def raw_data_pb(
     )
     tensor = tf.make_tensor_proto(np.float32(data), dtype=tf.float32)
     summary.value.add(
-        tag="%s/pr_curves" % name, metadata=tf_summary_metadata, tensor=tensor
+        tag=f"{name}/pr_curves", metadata=tf_summary_metadata, tensor=tensor
     )
     return summary
 

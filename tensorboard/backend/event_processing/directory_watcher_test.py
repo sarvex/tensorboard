@@ -35,8 +35,7 @@ class _ByteLoader(object):
     def Load(self):
         while True:
             self._f.seek(self.bytes_read)
-            byte = self._f.read(1)
-            if byte:
+            if byte := self._f.read(1):
                 self.bytes_read += 1
                 yield byte
             else:

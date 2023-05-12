@@ -77,10 +77,7 @@ class ManagerEndToEndTest(tf.test.TestCase):
             try:
                 p.kill()
             except Exception as e:
-                if isinstance(e, OSError) and e.errno == errno.ESRCH:
-                    # ESRCH 3 No such process: e.g., it already exited.
-                    pass
-                else:
+                if not isinstance(e, OSError) or e.errno != errno.ESRCH:
                     # We really want to make sure to try to kill all these
                     # processes. Continue killing; fail the test later.
                     failed_kills.append(e)
@@ -122,7 +119,7 @@ class ManagerEndToEndTest(tf.test.TestCase):
             string that starts with "#!/bin/sh" and then contains a POSIX
             shell script.
         """
-        tempdir = tempfile.mkdtemp(prefix="tensorboard-stub-%s-" % name)
+        tempdir = tempfile.mkdtemp(prefix=f"tensorboard-stub-{name}-")
         # (this directory is under our test directory; no need to clean it up)
         filepath = os.path.join(tempdir, "tensorboard")
         with open(filepath, "w") as outfile:

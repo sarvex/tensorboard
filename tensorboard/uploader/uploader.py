@@ -1104,10 +1104,8 @@ class _BlobRequestSender(object):
         # TODO(soergel): don't wait for responses for greater throughput
         # See https://stackoverflow.com/questions/55029342/handling-async-streaming-request-in-grpc-python
         try:
-            for response in self._api.WriteBlob(request_iterator):
+            for _ in self._api.WriteBlob(request_iterator):
                 count += 1
-                # TODO(soergel): validate responses?  probably not.
-                pass
             upload_duration_secs = time.time() - upload_start_time
             logger.info(
                 "Upload for %d chunks totaling %d bytes took %.3f seconds (%.3f MB/sec)",
@@ -1133,7 +1131,7 @@ class _BlobRequestSender(object):
         for offset in range(0, len(blob), self._max_blob_request_size):
             chunk = blob[offset : offset + self._max_blob_request_size]
             finalize_object = offset + self._max_blob_request_size >= len(blob)
-            request = write_service_pb2.WriteBlobRequest(
+            yield write_service_pb2.WriteBlobRequest(
                 blob_sequence_id=blob_sequence_id,
                 index=seq_index,
                 data=chunk,
@@ -1143,7 +1141,6 @@ class _BlobRequestSender(object):
                 final_crc32c=None,
                 blob_bytes=len(blob),
             )
-            yield request
 
 
 @contextlib.contextmanager

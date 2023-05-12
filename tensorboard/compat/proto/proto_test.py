@@ -222,9 +222,7 @@ class ProtoMatchTest(tf.test.TestCase):
                 fromfile=tb_path,
                 tofile=tf_path,
             )
-            diff = "".join(diff)
-
-            if diff:
+            if diff := "".join(diff):
                 failed_diffs.append(diff)
         if failed_diffs:
             self.fail(MATCH_FAIL_MESSAGE_TEMPLATE.format("".join(failed_diffs)))

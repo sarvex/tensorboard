@@ -60,5 +60,5 @@ def pivot_dataframe(dataframe):
     dataframe = dataframe.reset_index()
     # Remove the columns name "tag".
     dataframe.columns.name = None
-    dataframe.columns.names = [None for name in dataframe.columns.names]
+    dataframe.columns.names = [None for _ in dataframe.columns.names]
     return dataframe

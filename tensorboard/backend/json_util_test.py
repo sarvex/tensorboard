@@ -67,7 +67,7 @@ class CleanseTest(tb_test.TestCase):
         self.assertEqual(json_util.Cleanse(("a", "b")), ["a", "b"])
 
     def testSet_turnsIntoSortedList(self):
-        self.assertEqual(json_util.Cleanse(set(["b", "a"])), ["a", "b"])
+        self.assertEqual(json_util.Cleanse({"b", "a"}), ["a", "b"])
 
     def testByteString_turnsIntoUnicodeString(self):
         self.assertEqual(

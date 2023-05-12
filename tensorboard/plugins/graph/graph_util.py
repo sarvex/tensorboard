@@ -18,7 +18,7 @@ from tensorboard.compat.proto import graph_pb2
 
 
 def _prefixed_op_name(prefix, op_name):
-    return "%s/%s" % (prefix, op_name)
+    return f"{prefix}/{op_name}"
 
 
 def _prefixed_func_name(prefix, func_name):
@@ -36,7 +36,7 @@ def _prefixed_func_name(prefix, func_name):
     TODO(stephanwlee): add business logic to strip "__inference_" for more user
     friendlier name
     """
-    return "%s_%s" % (prefix, func_name)
+    return f"{prefix}_{func_name}"
 
 
 def _add_with_prepended_names(prefix, graph_to_add, destination_graph):

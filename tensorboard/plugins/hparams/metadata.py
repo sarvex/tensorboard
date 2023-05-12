@@ -116,12 +116,10 @@ def _parse_plugin_data_as(content, data_oneof_field):
     plugin_data = plugin_data_pb2.HParamsPluginData.FromString(content)
     if plugin_data.version != PLUGIN_DATA_VERSION:
         raise error.HParamsError(
-            "Only supports plugin_data version: %s; found: %s in: %s"
-            % (PLUGIN_DATA_VERSION, plugin_data.version, plugin_data)
+            f"Only supports plugin_data version: {PLUGIN_DATA_VERSION}; found: {plugin_data.version} in: {plugin_data}"
         )
     if not plugin_data.HasField(data_oneof_field):
         raise error.HParamsError(
-            "Expected plugin_data.%s to be set. Got: %s"
-            % (data_oneof_field, plugin_data)
+            f"Expected plugin_data.{data_oneof_field} to be set. Got: {plugin_data}"
         )
     return getattr(plugin_data, data_oneof_field)

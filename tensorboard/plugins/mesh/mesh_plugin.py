@@ -105,9 +105,9 @@ class MeshPlugin(base_plugin.TBPlugin):
         # SummaryMetadata.plugin_data.content. Retrieve the keys of that dictionary
         # to obtain a list of tags associated with each run. For each tag estimate
         # number of samples.
-        response = dict()
+        response = {}
         for run, tags in all_runs.items():
-            response[run] = dict()
+            response[run] = {}
             for (instance_tag, metadatum) in tags.items():
                 md = metadata.parse_plugin_metadata(metadatum.plugin_content)
                 if not self._version_checker.ok(md.version, run, instance_tag):
@@ -177,8 +177,7 @@ class MeshPlugin(base_plugin.TBPlugin):
 
     def _get_tensor_data(self, event, sample):
         """Convert a TensorDatum into a JSON-compatible response."""
-        data = self._get_sample(event, sample)
-        return data
+        return self._get_sample(event, sample)
 
     def _collect_tensor_events(self, request, step=None):
         """Collects list of tensor events based on request."""

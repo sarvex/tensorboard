@@ -93,7 +93,7 @@ def _build_combined_description(descriptions, description_to_runs):
     for description in descriptions:
         runs = sorted(description_to_runs[description])
         run_or_runs = "runs" if len(runs) > 1 else "run"
-        run_header = "## For " + run_or_runs + ": " + ", ".join(runs)
+        run_header = f"## For {run_or_runs}: " + ", ".join(runs)
         description_html = run_header + "\n" + description
         prefixed_descriptions.append(description_html)
 
@@ -183,19 +183,15 @@ def _format_image_blob_sequence_datum(sorted_datum_list, sample):
     # For images, ignore the first 2 items of a BlobSequenceDatum's values, which
     # correspond to width, height.
     index = sample + 2
-    step_data = []
-    for datum in sorted_datum_list:
-        if len(datum.values) <= index:
-            continue
-
-        step_data.append(
-            {
-                "step": datum.step,
-                "wallTime": datum.wall_time,
-                "imageId": datum.values[index].blob_key,
-            }
-        )
-    return step_data
+    return [
+        {
+            "step": datum.step,
+            "wallTime": datum.wall_time,
+            "imageId": datum.values[index].blob_key,
+        }
+        for datum in sorted_datum_list
+        if len(datum.values) > index
+    ]
 
 
 def _get_tag_run_image_info(mapping):
@@ -352,8 +348,7 @@ class MetricsPlugin(base_plugin.TBPlugin):
             self._image_version_checker,
         )
 
-        result = {}
-        result["scalars"] = _format_basic_mapping(scalar_mapping)
+        result = {"scalars": _format_basic_mapping(scalar_mapping)}
         result["histograms"] = _format_basic_mapping(histogram_mapping)
         result["images"] = _format_image_mapping(image_mapping)
         return result
@@ -400,11 +395,10 @@ class MetricsPlugin(base_plugin.TBPlugin):
         Returns:
             A list of `TimeSeriesResponse` dicts (see http_api.md).
         """
-        responses = [
+        return [
             self._get_time_series(ctx, experiment, request)
             for request in series_requests
         ]
-        return responses
 
     def _create_base_response(self, series_request):
         tag = series_request.get("tag")
@@ -428,11 +422,11 @@ class MetricsPlugin(base_plugin.TBPlugin):
         if not isinstance(tag, str):
             return "Missing tag"
 
-        if (
-            plugin != scalar_metadata.PLUGIN_NAME
-            and plugin != histogram_metadata.PLUGIN_NAME
-            and plugin != image_metadata.PLUGIN_NAME
-        ):
+        if plugin not in [
+            scalar_metadata.PLUGIN_NAME,
+            histogram_metadata.PLUGIN_NAME,
+            image_metadata.PLUGIN_NAME,
+        ]:
             return "Invalid plugin"
 
         if plugin in _SINGLE_RUN_PLUGINS and not isinstance(run, str):
@@ -459,8 +453,7 @@ class MetricsPlugin(base_plugin.TBPlugin):
         plugin = series_request.get("plugin")
         sample = series_request.get("sample")
         response = self._create_base_response(series_request)
-        request_error = self._get_invalid_request_error(series_request)
-        if request_error:
+        if request_error := self._get_invalid_request_error(series_request):
             response["error"] = request_error
             return response
 
@@ -530,8 +523,7 @@ class MetricsPlugin(base_plugin.TBPlugin):
             A list of `HistogramBin`s (see http_api.md).
         """
         numpy_list = datum.numpy.tolist()
-        bins = [{"min": x[0], "max": x[1], "count": x[2]} for x in numpy_list]
-        return bins
+        return [{"min": x[0], "max": x[1], "count": x[2]} for x in numpy_list]
 
     def _get_run_to_histogram_series(self, ctx, experiment, tag, runs):
         """Builds a run-to-histogram-series dict for client consumption.
@@ -595,10 +587,9 @@ class MetricsPlugin(base_plugin.TBPlugin):
             if tag not in tag_data:
                 continue
             blob_sequence_datum_list = tag_data[tag]
-            series = _format_image_blob_sequence_datum(
+            if series := _format_image_blob_sequence_datum(
                 blob_sequence_datum_list, sample
-            )
-            if series:
+            ):
                 run_to_series[result_run] = series
 
         return run_to_series

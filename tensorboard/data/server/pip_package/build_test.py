@@ -35,8 +35,8 @@ class BuildPipPackageTest(tb_test.TestCase):
             result = subprocess.run(
                 [
                     build_script,
-                    "--server-binary=%s" % (server_bin,),
-                    "--out-dir=%s" % (outdir,),
+                    f"--server-binary={server_bin}",
+                    f"--out-dir={outdir}",
                 ],
                 check=True,
                 capture_output=True,

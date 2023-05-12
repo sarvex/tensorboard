@@ -50,7 +50,7 @@ def pkg_basename(pkg, rust_extension):
     if pkg == _FILE_DESCRIPTOR_SET:
         return _FILE_DESCRIPTOR_SET
     else:
-        return "%s%s" % (pkg, rust_extension)
+        return f"{pkg}{rust_extension}"
 
 
 def expected_contents(pkg):
@@ -86,12 +86,12 @@ def check(proto_packages):
                 actual = infile.read()
         except OSError as e:
             failed = True
-            print("Could not read package %s: %s" % (pkg, e))
+            print(f"Could not read package {pkg}: {e}")
             continue
         if expected == actual:
-            print("%s OK" % dst)
+            print(f"{dst} OK")
         else:
-            print("%s out of date" % dst)
+            print(f"{dst} out of date")
             failed = True
     if failed:
         print("To update, run //tensorboard/data/server:update_protos")

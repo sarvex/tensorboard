@@ -103,14 +103,13 @@ def op(
     if encoding is None:
         encoding = "wav"
 
-    if encoding == "wav":
-        encoding = metadata.Encoding.Value("WAV")
-        encoder = functools.partial(
-            tf.audio.encode_wav, sample_rate=sample_rate
-        )
-    else:
+    if encoding != "wav":
         raise ValueError("Unknown encoding: %r" % encoding)
 
+    encoding = metadata.Encoding.Value("WAV")
+    encoder = functools.partial(
+        tf.audio.encode_wav, sample_rate=sample_rate
+    )
     with tf.name_scope(name), tf.control_dependencies(
         [tf.assert_rank(audio, 3)]
     ):
@@ -194,14 +193,13 @@ def pb(
     if encoding is None:
         encoding = "wav"
 
-    if encoding == "wav":
-        encoding = metadata.Encoding.Value("WAV")
-        encoder = functools.partial(
-            encoder_util.encode_wav, samples_per_second=sample_rate
-        )
-    else:
+    if encoding != "wav":
         raise ValueError("Unknown encoding: %r" % encoding)
 
+    encoding = metadata.Encoding.Value("WAV")
+    encoder = functools.partial(
+        encoder_util.encode_wav, samples_per_second=sample_rate
+    )
     limited_audio = audio[:max_outputs]
     if labels is None:
         limited_labels = [b""] * len(limited_audio)
@@ -225,7 +223,7 @@ def pb(
 
     summary = tf.Summary()
     summary.value.add(
-        tag="%s/audio_summary" % name,
+        tag=f"{name}/audio_summary",
         metadata=tf_summary_metadata,
         tensor=tensor,
     )

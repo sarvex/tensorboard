@@ -44,8 +44,7 @@ def main():
         print()
         okay = False
 
-    stale_exceptions = exceptions - frozenset(m.filename for m in matches)
-    if stale_exceptions:
+    if stale_exceptions := exceptions - frozenset(m.filename for m in matches):
         print(
             "Stale exceptions (no whitespace problems; prune exceptions list):"
         )

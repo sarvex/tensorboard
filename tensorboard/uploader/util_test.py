@@ -88,8 +88,7 @@ class GetUserConfigDirectoryTest(tb_test.TestCase):
     def test_non_windows(self):
         with mock.patch.dict(os.environ, {"HOME": "/home/alice"}):
             self.assertEqual(
-                "/home/alice%s.config" % os.sep,
-                util.get_user_config_directory(),
+                f"/home/alice{os.sep}.config", util.get_user_config_directory()
             )
             with mock.patch.dict(
                 os.environ, {"XDG_CONFIG_HOME": "/home/alice/configz"}

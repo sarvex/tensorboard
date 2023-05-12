@@ -209,7 +209,7 @@ class GraphsPluginV1Test(GraphsPluginBaseTest, tf.test.TestCase):
             is_conceptual=False,
             experiment="eid",
         )
-        node_names = set(node.name for node in graph.node)
+        node_names = {node.name for node in graph.node}
         self.assertEqual(
             {
                 "k1",

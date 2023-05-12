@@ -47,15 +47,14 @@ def get_random_mesh(
     colors = None
     if add_faces:
         arranged_vertices = np.random.permutation(num_vertices)
-        faces = []
-        for i in range(num_vertices - 2):
-            faces.append(
-                [
-                    arranged_vertices[i],
-                    arranged_vertices[i + 1],
-                    arranged_vertices[i + 2],
-                ]
-            )
+        faces = [
+            [
+                arranged_vertices[i],
+                arranged_vertices[i + 1],
+                arranged_vertices[i + 2],
+            ]
+            for i in range(num_vertices - 2)
+        ]
         faces = np.array(faces)
         faces = np.tile(faces, [batch_size, 1, 1]).astype(np.int32)
     if add_colors:

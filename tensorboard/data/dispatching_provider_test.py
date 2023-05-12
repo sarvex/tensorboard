@@ -36,30 +36,30 @@ class PlaceholderDataProvider(provider.DataProvider):
 
     def experiment_metadata(self, ctx, *, experiment_id):
         self._validate_eid(experiment_id)
-        data_location = "%s://%s" % (self._name, experiment_id)
+        data_location = f"{self._name}://{experiment_id}"
         return provider.ExperimentMetadata(data_location=data_location)
 
     def list_plugins(self, ctx, *, experiment_id):
         self._validate_eid(experiment_id)
-        return ["%s_a" % experiment_id, "%s_b" % experiment_id]
+        return [f"{experiment_id}_a", f"{experiment_id}_b"]
 
     def list_runs(self, ctx, *, experiment_id):
         self._validate_eid(experiment_id)
-        return ["%s/train" % experiment_id, "%s/test" % experiment_id]
+        return [f"{experiment_id}/train", f"{experiment_id}/test"]
 
     def list_scalars(
         self, ctx, *, experiment_id, plugin_name, run_tag_filter=None
     ):
         self._validate_eid(experiment_id)
-        run_name = "%s/train" % experiment_id
-        tag_name = "loss.%s" % plugin_name
+        run_name = f"{experiment_id}/train"
+        tag_name = f"loss.{plugin_name}"
         return {
             run_name: {
                 tag_name: provider.ScalarTimeSeries(
                     max_step=2,
                     max_wall_time=0.5,
                     plugin_content=b"",
-                    description="Hello from %s" % self._name,
+                    description=f"Hello from {self._name}",
                     display_name="loss",
                 )
             }
@@ -78,8 +78,8 @@ class PlaceholderDataProvider(provider.DataProvider):
         if run_tag_filter is None:
             run_tag_filter = provider.RunTagFilter()
         rtf = run_tag_filter
-        expected_run = "%s/train" % experiment_id
-        expected_tag = "loss.%s" % plugin_name
+        expected_run = f"{experiment_id}/train"
+        expected_tag = f"loss.{plugin_name}"
         if rtf.runs is not None and expected_run not in rtf.runs:
             return {}
         if rtf.tags is not None and expected_tag not in rtf.tags:
@@ -119,8 +119,8 @@ class PlaceholderDataProvider(provider.DataProvider):
         self, ctx, *, experiment_id, plugin_name, run_tag_filter=None
     ):
         self._validate_eid(experiment_id)
-        run_name = "%s/test" % experiment_id
-        tag_name = "input.%s" % plugin_name
+        run_name = f"{experiment_id}/test"
+        tag_name = f"input.{plugin_name}"
         return {
             run_name: {
                 tag_name: provider.BlobSequenceTimeSeries(
@@ -128,7 +128,7 @@ class PlaceholderDataProvider(provider.DataProvider):
                     max_wall_time=0.0,
                     max_length=2,
                     plugin_content=b"",
-                    description="Greetings via %s" % self._name,
+                    description=f"Greetings via {self._name}",
                     display_name="input",
                 )
             }
@@ -147,8 +147,8 @@ class PlaceholderDataProvider(provider.DataProvider):
         if run_tag_filter is None:
             run_tag_filter = provider.RunTagFilter()
         rtf = run_tag_filter
-        expected_run = "%s/test" % experiment_id
-        expected_tag = "input.%s" % plugin_name
+        expected_run = f"{experiment_id}/test"
+        expected_tag = f"input.{plugin_name}"
         if rtf.runs is not None and expected_run not in rtf.runs:
             return {}
         if rtf.tags is not None and expected_tag not in rtf.tags:
@@ -161,24 +161,24 @@ class PlaceholderDataProvider(provider.DataProvider):
                         wall_time=0.0,
                         values=[
                             self._make_blob_reference(
-                                "experiment: %s" % experiment_id
+                                f"experiment: {experiment_id}"
                             ),
-                            self._make_blob_reference("name: %s" % self._name),
+                            self._make_blob_reference(f"name: {self._name}"),
                         ],
-                    ),
+                    )
                 ]
             }
         }
 
     def _make_blob_reference(self, text):
         key = base64.urlsafe_b64encode(
-            ("%s:%s" % (self._name, text)).encode("utf-8")
+            f"{self._name}:{text}".encode("utf-8")
         ).decode("ascii")
         return provider.BlobReference(key)
 
     def read_blob(self, ctx, *, blob_key):
         payload = base64.urlsafe_b64decode(blob_key)
-        prefix = ("%s:" % self._name).encode("utf-8")
+        prefix = f"{self._name}:".encode("utf-8")
         if not payload.startswith(prefix):
             raise errors.NotFound("not %r.startswith(%r)" % (payload, prefix))
         return payload[len(prefix) :]

@@ -102,14 +102,14 @@ class SubprocessServerDataIngesterTest(tb_test.TestCase):
 
         expected_args = [
             fake_binary_path,
-            "--logdir=%s" % expanded_logdir,
+            f"--logdir={expanded_logdir}",
             "--reload=5",
             "--samples-per-plugin=scalars=500,images=all",
             "--port=0",
-            "--port-file=%s" % port_file,
+            f"--port-file={port_file}",
             "--die-after-stdin",
-            "--error-file=%s" % error_file,
-            "--verbose",  # logging is enabled in tests
+            f"--error-file={error_file}",
+            "--verbose",
             "--extra-flags",
             "--for-fun",
         ]

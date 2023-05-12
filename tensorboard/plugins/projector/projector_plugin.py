@@ -140,9 +140,7 @@ class EmbeddingMetadata(object):
                 "length %d" % (self.num_points, len(column_values))
             )
         if column_name in self.name_to_values:
-            raise ValueError(
-                'The column name "%s" is already used' % column_name
-            )
+            raise ValueError(f'The column name "{column_name}" is already used')
 
         self.column_names.append(column_name)
         self.name_to_values[column_name] = column_values
@@ -152,15 +150,14 @@ def _read_tensor_tsv_file(fpath):
     with tf.io.gfile.GFile(fpath, "r") as f:
         tensor = []
         for line in f:
-            line = line.rstrip("\n")
-            if line:
+            if line := line.rstrip("\n"):
                 tensor.append(list(map(float, line.split("\t"))))
     return np.array(tensor, dtype="float32")
 
 
 def _read_tensor_binary_file(fpath, shape):
     if len(shape) != 2:
-        raise ValueError("Tensor must be 2D, got shape {}".format(shape))
+        raise ValueError(f"Tensor must be 2D, got shape {shape}")
     tensor = np.fromfile(fpath, dtype="float32")
     return tensor.reshape(shape)
 
@@ -421,11 +418,9 @@ class ProjectorPlugin(base_plugin.TBPlugin):
                 if not embedding.tensor_shape:
                     embedding.tensor_shape.extend(tensor_shape)
 
-        # Remove configs that do not have any valid (2D) tensors.
-        runs_to_remove = []
-        for run, config in self._configs.items():
-            if not config.embeddings:
-                runs_to_remove.append(run)
+        runs_to_remove = [
+            run for run, config in self._configs.items() if not config.embeddings
+        ]
         for run in runs_to_remove:
             del self._configs[run]
             del self.config_fpaths[run]
@@ -465,7 +460,7 @@ class ProjectorPlugin(base_plugin.TBPlugin):
             if (
                 config.model_checkpoint_path
                 and _using_tf()
-                and not tf.io.gfile.glob(config.model_checkpoint_path + "*")
+                and not tf.io.gfile.glob(f"{config.model_checkpoint_path}*")
             ):
                 logger.warning(
                     'Checkpoint file "%s" not found',
@@ -493,32 +488,30 @@ class ProjectorPlugin(base_plugin.TBPlugin):
         return reader
 
     def _get_metadata_file_for_tensor(self, tensor_name, config):
-        embedding_info = self._get_embedding(tensor_name, config)
-        if embedding_info:
+        if embedding_info := self._get_embedding(tensor_name, config):
             return embedding_info.metadata_path
         return None
 
     def _get_bookmarks_file_for_tensor(self, tensor_name, config):
-        embedding_info = self._get_embedding(tensor_name, config)
-        if embedding_info:
+        if embedding_info := self._get_embedding(tensor_name, config):
             return embedding_info.bookmarks_path
         return None
 
     def _canonical_tensor_name(self, tensor_name):
-        if ":" not in tensor_name:
-            return tensor_name + ":0"
-        else:
-            return tensor_name
+        return f"{tensor_name}:0" if ":" not in tensor_name else tensor_name
 
     def _get_embedding(self, tensor_name, config):
         if not config.embeddings:
             return None
-        for info in config.embeddings:
-            if self._canonical_tensor_name(
-                info.tensor_name
-            ) == self._canonical_tensor_name(tensor_name):
-                return info
-        return None
+        return next(
+            (
+                info
+                for info in config.embeddings
+                if self._canonical_tensor_name(info.tensor_name)
+                == self._canonical_tensor_name(tensor_name)
+            ),
+            None,
+        )
 
     def _append_plugin_asset_directories(self, run_path_pairs):
         extra = []
@@ -558,9 +551,7 @@ class ProjectorPlugin(base_plugin.TBPlugin):
         self._update_configs()
         config = self._configs.get(run)
         if config is None:
-            return Respond(
-                request, 'Unknown run: "%s"' % run, "text/plain", 400
-            )
+            return Respond(request, f'Unknown run: "{run}"', "text/plain", 400)
         return Respond(
             request, json_format.MessageToJson(config), "application/json"
         )
@@ -591,15 +582,12 @@ class ProjectorPlugin(base_plugin.TBPlugin):
         self._update_configs()
         config = self._configs.get(run)
         if config is None:
-            return Respond(
-                request, 'Unknown run: "%s"' % run, "text/plain", 400
-            )
+            return Respond(request, f'Unknown run: "{run}"', "text/plain", 400)
         fpath = self._get_metadata_file_for_tensor(name, config)
         if not fpath:
             return Respond(
                 request,
-                'No metadata file found for tensor "%s" in the config file "%s"'
-                % (name, self.config_fpaths[run]),
+                f'No metadata file found for tensor "{name}" in the config file "{self.config_fpaths[run]}"',
                 "text/plain",
                 400,
             )
@@ -607,7 +595,7 @@ class ProjectorPlugin(base_plugin.TBPlugin):
         if not tf.io.gfile.exists(fpath) or tf.io.gfile.isdir(fpath):
             return Respond(
                 request,
-                '"%s" not found, or is not a file' % fpath,
+                f'"{fpath}" not found, or is not a file',
                 "text/plain",
                 400,
             )
@@ -651,9 +639,7 @@ class ProjectorPlugin(base_plugin.TBPlugin):
         self._update_configs()
         config = self._configs.get(run)
         if config is None:
-            return Respond(
-                request, 'Unknown run: "%s"' % run, "text/plain", 400
-            )
+            return Respond(request, f'Unknown run: "{run}"', "text/plain", 400)
         tensor = self.tensor_cache.get((run, name))
         if tensor is None:
             # See if there is a tensor file in the config.
@@ -666,7 +652,7 @@ class ProjectorPlugin(base_plugin.TBPlugin):
                 if not tf.io.gfile.exists(fpath):
                     return Respond(
                         request,
-                        'Tensor file "%s" does not exist' % fpath,
+                        f'Tensor file "{fpath}" does not exist',
                         "text/plain",
                         400,
                     )
@@ -681,8 +667,7 @@ class ProjectorPlugin(base_plugin.TBPlugin):
                 if not reader or not reader.has_tensor(name):
                     return Respond(
                         request,
-                        'Tensor "%s" not found in checkpoint dir "%s"'
-                        % (name, config.model_checkpoint_path),
+                        f'Tensor "{name}" not found in checkpoint dir "{config.model_checkpoint_path}"',
                         "text/plain",
                         400,
                     )
@@ -717,15 +702,12 @@ class ProjectorPlugin(base_plugin.TBPlugin):
         self._update_configs()
         config = self._configs.get(run)
         if config is None:
-            return Respond(
-                request, 'Unknown run: "%s"' % run, "text/plain", 400
-            )
+            return Respond(request, f'Unknown run: "{run}"', "text/plain", 400)
         fpath = self._get_bookmarks_file_for_tensor(name, config)
         if not fpath:
             return Respond(
                 request,
-                'No bookmarks file found for tensor "%s" in the config file "%s"'
-                % (name, self.config_fpaths[run]),
+                f'No bookmarks file found for tensor "{name}" in the config file "{self.config_fpaths[run]}"',
                 "text/plain",
                 400,
             )
@@ -733,7 +715,7 @@ class ProjectorPlugin(base_plugin.TBPlugin):
         if not tf.io.gfile.exists(fpath) or tf.io.gfile.isdir(fpath):
             return Respond(
                 request,
-                '"%s" not found, or is not a file' % fpath,
+                f'"{fpath}" not found, or is not a file',
                 "text/plain",
                 400,
             )
@@ -760,16 +742,13 @@ class ProjectorPlugin(base_plugin.TBPlugin):
         self._update_configs()
         config = self._configs.get(run)
         if config is None:
-            return Respond(
-                request, 'Unknown run: "%s"' % run, "text/plain", 400
-            )
+            return Respond(request, f'Unknown run: "{run}"', "text/plain", 400)
 
         embedding_info = self._get_embedding(name, config)
         if not embedding_info or not embedding_info.sprite.image_path:
             return Respond(
                 request,
-                'No sprite image file found for tensor "%s" in the config file "%s"'
-                % (name, self.config_fpaths[run]),
+                f'No sprite image file found for tensor "{name}" in the config file "{self.config_fpaths[run]}"',
                 "text/plain",
                 400,
             )
@@ -779,7 +758,7 @@ class ProjectorPlugin(base_plugin.TBPlugin):
         if not tf.io.gfile.exists(fpath) or tf.io.gfile.isdir(fpath):
             return Respond(
                 request,
-                '"%s" does not exist or is directory' % fpath,
+                f'"{fpath}" does not exist or is directory',
                 "text/plain",
                 400,
             )

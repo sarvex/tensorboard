@@ -190,12 +190,8 @@ class GFileTest(tb_test.TestCase):
         # That substitution desynchronizes character offsets (omitting \r) from
         # the underlying byte offsets (counting \r).  Multibyte characters would
         # similarly cause desynchronization.
-        raw_ckpt_lines = (
-            ["\r\n"] + ["line {}\r\n".format(i) for i in range(10)] + [" "]
-        )
-        expected_ckpt_lines = (  # without \r
-            ["\n"] + ["line {}\n".format(i) for i in range(10)] + [" "]
-        )
+        raw_ckpt_lines = ["\r\n"] + [f"line {i}\r\n" for i in range(10)] + [" "]
+        expected_ckpt_lines = ["\n"] + [f"line {i}\n" for i in range(10)] + [" "]
         # Write out newlines as given (i.e., \r\n) regardless of OS, so as to
         # test translation on read.
         with io.open(ckpt_path, "w", newline="") as f:

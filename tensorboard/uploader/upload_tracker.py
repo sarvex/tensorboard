@@ -181,21 +181,18 @@ class UploadStats(object):
           - If any data was skipped, a string for all skipped data. Else, `None`.
         """
         self._last_summarized_timestamp = time.time()
-        string_pieces = []
-        string_pieces.append("%d scalars" % self._num_scalars)
         uploaded_tensor_count = self._num_tensors - self._num_tensors_skipped
         uploaded_tensor_bytes = self._tensor_bytes - self._tensor_bytes_skipped
-        string_pieces.append(
+        string_pieces = [
+            "%d scalars" % self._num_scalars,
             "0 tensors"
             if not uploaded_tensor_count
-            else (
-                "%d tensors (%s)"
-                % (
-                    uploaded_tensor_count,
-                    readable_bytes_string(uploaded_tensor_bytes),
-                )
-            )
-        )
+            else "%d tensors (%s)"
+            % (
+                uploaded_tensor_count,
+                readable_bytes_string(uploaded_tensor_bytes),
+            ),
+        ]
         uploaded_blob_count = self._num_blobs - self._num_blobs_skipped
         uploaded_blob_bytes = self._blob_bytes - self._blob_bytes_skipped
         string_pieces.append(
@@ -262,8 +259,7 @@ class UploadTracker(object):
     def __init__(self, verbosity, one_shot=False):
         if verbosity not in self._SUPPORTED_VERBISITY_VALUES:
             raise ValueError(
-                "Unsupported verbosity value %s (supported values: %s)"
-                % (verbosity, self._SUPPORTED_VERBISITY_VALUES)
+                f"Unsupported verbosity value {verbosity} (supported values: {self._SUPPORTED_VERBISITY_VALUES})"
             )
         self._verbosity = verbosity
         self._stats = UploadStats()
@@ -410,7 +406,7 @@ class UploadTracker(object):
           blob_bytes: Total byte size of the blob being uploaded.
         """
         self._overwrite_line_message(
-            "Uploading binary object (%s)" % readable_bytes_string(blob_bytes)
+            f"Uploading binary object ({readable_bytes_string(blob_bytes)})"
         )
         try:
             yield _BlobTracker(self._stats, blob_bytes)

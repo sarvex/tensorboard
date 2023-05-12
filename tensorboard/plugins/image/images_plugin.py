@@ -205,7 +205,7 @@ class ImagesPlugin(base_plugin.TBPlugin):
           A string representation of a URL that will load the index-th sampled image
           in the given run with the given tag.
         """
-        query_string = urllib.parse.urlencode(
+        return urllib.parse.urlencode(
             {
                 "run": run,
                 "tag": tag,
@@ -213,7 +213,6 @@ class ImagesPlugin(base_plugin.TBPlugin):
                 "index": index,
             }
         )
-        return query_string
 
     def _data_provider_query(self, blob_reference):
         return urllib.parse.urlencode({"blob_key": blob_reference.blob_key})

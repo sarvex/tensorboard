@@ -173,8 +173,7 @@ class SubcommandTest(tb_test.TestCase):
         _TestSubcommand.run.return_value = None
 
     def tearDown(self):
-        stderr = self.stderr.getvalue()
-        if stderr:
+        if stderr := self.stderr.getvalue():
             # In case of failing tests, let there be debug info.
             print("Stderr:\n%s" % stderr)
 

@@ -62,7 +62,7 @@ def _walk_layers(keras_layer):
         for layer in keras_layer.get("config").get("layers"):
             for (sub_name_scope, sublayer) in _walk_layers(layer):
                 sub_name_scope = (
-                    "%s/%s" % (name_scope, sub_name_scope)
+                    f"{name_scope}/{sub_name_scope}"
                     if sub_name_scope
                     else name_scope
                 )
@@ -80,9 +80,7 @@ def _scoped_name(name_scope, node_name):
     Returns
       A string representing a scoped name.
     """
-    if name_scope:
-        return "%s/%s" % (name_scope, node_name)
-    return node_name
+    return f"{name_scope}/{node_name}" if name_scope else node_name
 
 
 def _is_model(layer):
@@ -161,15 +159,11 @@ def _update_dicts(
             input_layer_name = _scoped_name(node_name, input_layer)
             inbound_node_name = _scoped_name(name_scope, inbound_node[0])
             input_to_in_layer[input_layer_name] = inbound_node_name
-    elif is_parent_functional_model and not is_functional_model:
+    elif is_parent_functional_model:
         # Sequential model can take only one input. Make sure inbound to the
         # model is linked to the first layer in the Sequential model.
         prev_node_name = _scoped_name(name_scope, inbound_nodes[0][0][0])
-    elif (
-        not is_parent_functional_model
-        and prev_node_name
-        and is_functional_model
-    ):
+    elif prev_node_name and is_functional_model:
         assert len(input_layers) == 1, (
             "Cannot have multi-input Functional model when parent model "
             "is not Functional. Number of input layers: %d" % len(input_layer)

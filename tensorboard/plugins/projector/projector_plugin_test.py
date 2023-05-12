@@ -73,10 +73,9 @@ class ProjectorAppTest(tf.test.TestCase):
 
     def testRunsWithInvalidModelCheckpointPath(self):
         checkpoint_file = os.path.join(self.log_dir, "checkpoint")
-        f = open(checkpoint_file, "w")
-        f.write('model_checkpoint_path: "does_not_exist"\n')
-        f.write('all_model_checkpoint_paths: "does_not_exist"\n')
-        f.close()
+        with open(checkpoint_file, "w") as f:
+            f.write('model_checkpoint_path: "does_not_exist"\n')
+            f.write('all_model_checkpoint_paths: "does_not_exist"\n')
         self._SetupWSGIApp()
 
         run_json = self._GetJson("/data/plugin/projector/runs")
@@ -127,7 +126,7 @@ class ProjectorAppTest(tf.test.TestCase):
         run_json = self._GetJson("/data/plugin/projector/runs")
         self.assertTrue(run_json)
         run = run_json[0]
-        info_json = self._GetJson("/data/plugin/projector/info?run=%s" % run)
+        info_json = self._GetJson(f"/data/plugin/projector/info?run={run}")
         self.assertItemsEqual(
             info_json["embeddings"],
             [

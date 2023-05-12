@@ -49,7 +49,7 @@ class FetchServerInfoTest(tb_test.TestCase):
         self.addCleanup(cleanup)
         if ":" in localhost and not localhost.startswith("["):
             # IPv6 IP address, probably "::1".
-            localhost = "[%s]" % localhost
+            localhost = f"[{localhost}]"
         return "http://%s:%d" % (localhost, server.server_port)
 
     def test_fetches_response(self):
@@ -140,7 +140,7 @@ class FetchServerInfoTest(tb_test.TestCase):
 
         origin = self._start_server(app)
         result = server_info.fetch_server_info(origin, [])
-        expected_user_agent = "tensorboard/%s" % version.VERSION
+        expected_user_agent = f"tensorboard/{version.VERSION}"
         self.assertEqual(result.compatibility.details, expected_user_agent)
 
 

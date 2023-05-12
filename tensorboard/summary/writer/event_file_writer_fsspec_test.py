@@ -35,7 +35,7 @@ USING_REAL_TF = tf.__version__ != "stub"
 
 class EventFileWriterFSSpecTest(tb_test.TestCase):
     def get_temp_dir(self):
-        return "file://" + super().get_temp_dir()
+        return f"file://{super().get_temp_dir()}"
 
     def glob(self, path):
         fs, _, _ = fsspec.get_fs_token_paths(

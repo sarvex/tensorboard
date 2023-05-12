@@ -39,7 +39,7 @@ class ExperimentFromDevTest(tb_test.TestCase):
                     response = export_service_pb2.StreamExperimentDataResponse()
                     response.run_name = run
                     response.tag_name = tag
-                    display_name = "%s:%s" % (request.experiment_id, tag)
+                    display_name = f"{request.experiment_id}:{tag}"
                     response.tag_metadata.CopyFrom(
                         test_util.scalar_metadata(display_name)
                     )
@@ -68,17 +68,14 @@ class ExperimentFromDevTest(tb_test.TestCase):
         )
 
         with mock.patch.object(
-            experiment_from_dev,
-            "get_api_client",
-            lambda api_endpoint: mock_api_client,
-        ):
+                experiment_from_dev,
+                "get_api_client",
+                lambda api_endpoint: mock_api_client,
+            ):
             experiment = experiment_from_dev.ExperimentFromDev("789")
             for pivot in (False, True):
                 for include_wall_time in (False, True):
-                    with self.subTest(
-                        "pivot=%s; include_wall_time=%s"
-                        % (pivot, include_wall_time)
-                    ):
+                    with self.subTest(f"pivot={pivot}; include_wall_time={include_wall_time}"):
                         dataframe = experiment.get_scalars(
                             pivot=pivot, include_wall_time=include_wall_time
                         )

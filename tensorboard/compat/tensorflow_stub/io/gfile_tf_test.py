@@ -220,7 +220,7 @@ class FileIoTest(tb_test.TestCase):
             all_dirs.index(os.path.join(dir_path, "subdir1_2/subdir2")),
             all_dirs.index(os.path.join(dir_path, "subdir1_2")),
         )
-        self.assertItemsEqual(all_subdirs[0:4], [[], [], ["subdir2"], []])
+        self.assertItemsEqual(all_subdirs[:4], [[], [], ["subdir2"], []])
         self.assertItemsEqual(
             all_subdirs[4], ["subdir1_1", "subdir1_2", "subdir1_3"]
         )
@@ -269,9 +269,7 @@ class FileIoTest(tb_test.TestCase):
         with gfile.GFile(file_path, mode="w") as f:
             f.write("".join(data))
         with gfile.GFile(file_path, mode="r") as f:
-            actual_data = []
-            for line in f:
-                actual_data.append(line)
+            actual_data = list(f)
             self.assertSequenceEqual(actual_data, data)
 
     def testUTF8StringPath(self):

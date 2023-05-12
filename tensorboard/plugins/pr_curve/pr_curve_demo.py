@@ -215,7 +215,7 @@ def start_runs(
             predictions=predictions[i],
             num_thresholds=thresholds,
             weights=weights,
-            display_name="classifying %s" % color,
+            display_name=f"classifying {color}",
             description=description,
         )
     merged_summary_op = tf.compat.v1.summary.merge_all()
@@ -246,7 +246,7 @@ def run_all(logdir, steps, thresholds, verbose=False):
     # predictions of all classes.
     run_name = "colors"
     if verbose:
-        print("--- Running: %s" % run_name)
+        print(f"--- Running: {run_name}")
     start_runs(
         logdir=logdir, steps=steps, run_name=run_name, thresholds=thresholds
     )
@@ -255,7 +255,7 @@ def run_all(logdir, steps, thresholds, verbose=False):
     # predictions.
     run_name = "mask_every_other_prediction"
     if verbose:
-        print("--- Running: %s" % run_name)
+        print(f"--- Running: {run_name}")
     start_runs(
         logdir=logdir,
         steps=steps,
@@ -266,9 +266,9 @@ def run_all(logdir, steps, thresholds, verbose=False):
 
 
 def main(unused_argv):
-    print("Saving output to %s." % FLAGS.logdir)
+    print(f"Saving output to {FLAGS.logdir}.")
     run_all(FLAGS.logdir, FLAGS.steps, 51, verbose=True)
-    print("Done. Output saved to %s." % FLAGS.logdir)
+    print(f"Done. Output saved to {FLAGS.logdir}.")
 
 
 if __name__ == "__main__":

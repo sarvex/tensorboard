@@ -84,7 +84,7 @@ class ExampleRawScalarsPlugin(base_plugin.TBPlugin):
         resource_name = os.path.normpath(
             os.path.join(*static_path_part.split("/"))
         )
-        if not resource_name.startswith("static" + os.path.sep):
+        if not resource_name.startswith(f"static{os.path.sep}"):
             return http_util.Respond(
                 request, "Not found", "text/plain", code=404
             )

@@ -75,8 +75,7 @@ def bench(image, thread_count):
     for thread in threads:
         thread.join()
     end_time = datetime.datetime.now()
-    delta = (end_time - start_time).total_seconds()
-    return delta
+    return (end_time - start_time).total_seconds()
 
 
 def _image_of_size(image_size):

@@ -60,11 +60,9 @@ class _EventGenerator(object):
         while self.items:
             event = self.items.pop(0)
             event = data_compat.migrate_event(event)
-            events = dataclass_compat.migrate_event(
+            yield from dataclass_compat.migrate_event(
                 event, self._initial_metadata
             )
-            for event in events:
-                yield event
 
     def AddScalarTensor(self, tag, wall_time=0, step=0, value=0):
         """Add a rank-0 tensor event.

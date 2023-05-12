@@ -50,12 +50,7 @@ class MeshSummaryV2Test(tf.test.TestCase):
         event_files = sorted(glob.glob(os.path.join(self.get_temp_dir(), "*")))
         self.assertEqual(len(event_files), 1)
         events = list(tf.compat.v1.train.summary_iterator(event_files[0]))
-        # Expect a boilerplate event for the file_version, then the vertices
-        # summary one.
-        num_events = 2
-        # All additional tensors (i.e. colors or faces) will be stored as separate
-        # events, so account for them as well.
-        num_events += len(frozenset(["colors", "faces"]).intersection(kwargs))
+        num_events = 2 + len(frozenset(["colors", "faces"]).intersection(kwargs))
         self.assertEqual(len(events), num_events)
         # Delete the event file to reset to an empty directory for later calls.
         os.remove(event_files[0])
@@ -110,9 +105,7 @@ class MeshSummaryV2Test(tf.test.TestCase):
         expected_names_set = frozenset(
             name_tpl % name for name_tpl in ["%s_VERTEX", "%s_FACE", "%s_COLOR"]
         )
-        actual_names_set = frozenset(
-            [event.summary.value[0].tag for event in events]
-        )
+        actual_names_set = frozenset(event.summary.value[0].tag for event in events)
         self.assertEqual(expected_names_set, actual_names_set)
         expected_bitmask = metadata.get_components_bitmask(
             [

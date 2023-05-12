@@ -62,7 +62,7 @@ def alerts_run_tag_filter(run, begin, end, alert_type=None):
     """
     tag = "%s_%d_%d" % (ALERTS_BLOB_TAG_PREFIX, begin, end)
     if alert_type is not None:
-        tag += "_%s" % alert_type
+        tag += f"_{alert_type}"
     return provider.RunTagFilter(runs=[run], tags=[tag])
 
 
@@ -88,9 +88,7 @@ def _parse_alerts_blob_key(blob_key):
     key_items = key_body.split("_", 3)
     begin = int(key_items[1])
     end = int(key_items[2])
-    alert_type = None
-    if len(key_items) > 3:
-        alert_type = key_items[3]
+    alert_type = key_items[3] if len(key_items) > 3 else None
     return run, begin, end, alert_type
 
 
@@ -301,7 +299,7 @@ def graph_op_info_run_tag_filter(run, graph_id, op_name):
         raise ValueError("graph_id must not be None or empty.")
     return provider.RunTagFilter(
         runs=[run],
-        tags=["%s_%s_%s" % (GRAPH_OP_INFO_BLOB_TAG_PREFIX, graph_id, op_name)],
+        tags=[f"{GRAPH_OP_INFO_BLOB_TAG_PREFIX}_{graph_id}_{op_name}"],
     )
 
 
@@ -345,8 +343,7 @@ def graph_info_run_tag_filter(run, graph_id):
     if not graph_id:
         raise ValueError("graph_id must not be None or empty.")
     return provider.RunTagFilter(
-        runs=[run],
-        tags=["%s_%s" % (GRAPH_INFO_BLOB_TAG_PREFIX, graph_id)],
+        runs=[run], tags=[f"{GRAPH_INFO_BLOB_TAG_PREFIX}_{graph_id}"]
     )
 
 
@@ -436,9 +433,7 @@ def stack_frames_run_tag_filter(run, stack_frame_ids):
     """
     return provider.RunTagFilter(
         runs=[run],
-        # The stack-frame IDS are UUIDs, which do not contain underscores.
-        # Hence it's safe to concatenate them with underscores.
-        tags=[STACK_FRAMES_BLOB_TAG_PREFIX + "_" + "_".join(stack_frame_ids)],
+        tags=[f"{STACK_FRAMES_BLOB_TAG_PREFIX}_" + "_".join(stack_frame_ids)],
     )
 
 
@@ -540,7 +535,7 @@ class LocalDebuggerV2DataProvider(provider.DataProvider):
     ):
         del experiment_id, downsample  # Unused.
         if plugin_name != PLUGIN_NAME:
-            raise ValueError("Unsupported plugin_name: %s" % plugin_name)
+            raise ValueError(f"Unsupported plugin_name: {plugin_name}")
         if run_tag_filter.runs is None:
             raise ValueError(
                 "run_tag_filter.runs is expected to be specified, but is not."
@@ -550,12 +545,12 @@ class LocalDebuggerV2DataProvider(provider.DataProvider):
                 "run_tag_filter.tags is expected to be specified, but is not."
             )
 
-        output = dict()
+        output = {}
         existing_runs = self._multiplexer.Runs()
         for run in run_tag_filter.runs:
             if run not in existing_runs:
                 continue
-            output[run] = dict()
+            output[run] = {}
             for tag in run_tag_filter.tags:
                 if (
                     tag.startswith(
@@ -573,9 +568,7 @@ class LocalDebuggerV2DataProvider(provider.DataProvider):
                     )
                     or tag in (SOURCE_FILE_LIST_BLOB_TAG,)
                 ):
-                    output[run][tag] = [
-                        provider.BlobReference(blob_key="%s.%s" % (tag, run))
-                    ]
+                    output[run][tag] = [provider.BlobReference(blob_key=f"{tag}.{run}")]
         return output
 
     def read_blob(self, ctx=None, *, blob_key):
@@ -624,4 +617,4 @@ class LocalDebuggerV2DataProvider(provider.DataProvider):
                 self._multiplexer.StackFrames(run, stack_frame_ids)
             )
         else:
-            raise ValueError("Unrecognized blob_key: %s" % blob_key)
+            raise ValueError(f"Unrecognized blob_key: {blob_key}")

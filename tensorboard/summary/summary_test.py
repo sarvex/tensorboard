@@ -43,23 +43,22 @@ class SummaryExportsBaseTest(object):
     def test_plugins_export_pb_functions(self):
         for plugin in self.plugins:
             self.assertIsInstance(
-                getattr(self.module, "%s_pb" % plugin), collections.abc.Callable
+                getattr(self.module, f"{plugin}_pb"), collections.abc.Callable
             )
 
     def test_all_exports_correspond_to_plugins(self):
         exports = [
             name for name in dir(self.module) if not name.startswith("_")
         ]
-        bad_exports = [
+        if bad_exports := [
             name
             for name in exports
             if name not in self.allowed
             and not any(
-                name == plugin or name.startswith("%s_" % plugin)
+                name == plugin or name.startswith(f"{plugin}_")
                 for plugin in self.plugins
             )
-        ]
-        if bad_exports:
+        ]:
             self.fail(
                 "The following exports do not correspond to known standard "
                 "plugins: %r. Please mark these as private by prepending an "

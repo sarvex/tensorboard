@@ -48,9 +48,7 @@ class ExperimentIdMiddleware(object):
         self._application = application
         # Regular expression that matches the whole `/experiment/EID` prefix
         # (without any trailing slash) and captures the experiment ID.
-        self._pat = re.compile(
-            r"/%s/([^/]*)" % re.escape(_EXPERIMENT_PATH_COMPONENT)
-        )
+        self._pat = re.compile(f"/{re.escape(_EXPERIMENT_PATH_COMPONENT)}/([^/]*)")
 
     def __call__(self, environ, start_response):
         # Skip ExperimentIdMiddleware was already called.
@@ -58,8 +56,7 @@ class ExperimentIdMiddleware(object):
             return self._application(environ, start_response)
 
         path = environ.get("PATH_INFO", "")
-        m = self._pat.match(path)
-        if m:
+        if m := self._pat.match(path):
             eid = m.group(1)
             new_path = path[m.end(0) :]
             root = m.group(0)

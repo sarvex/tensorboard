@@ -214,7 +214,7 @@ def run_all(logdir, verbose=False):
     sessions_per_group = 2
     num_sessions = flags.FLAGS.num_session_groups * sessions_per_group
     session_index = 0  # across all session groups
-    for group_index in range(flags.FLAGS.num_session_groups):
+    for _ in range(flags.FLAGS.num_session_groups):
         hparams = {h: h.domain.sample_uniform(rng) for h in HPARAMS}
         hparams_string = str(hparams)
         for repeat_index in range(sessions_per_group):
@@ -239,9 +239,9 @@ def main(unused_argv):
     np.random.seed(0)
     logdir = flags.FLAGS.logdir
     shutil.rmtree(logdir, ignore_errors=True)
-    print("Saving output to %s." % logdir)
+    print(f"Saving output to {logdir}.")
     run_all(logdir=logdir, verbose=True)
-    print("Done. Output saved to %s." % logdir)
+    print(f"Done. Output saved to {logdir}.")
 
 
 if __name__ == "__main__":

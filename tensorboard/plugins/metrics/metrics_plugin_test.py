@@ -76,10 +76,8 @@ class MetricsPluginTest(tf.test.TestCase):
         writer = tf.summary.create_file_writer(subdir)
 
         with writer.as_default():
-            step = 0
-            for datum in data:
+            for step, datum in enumerate(data):
                 tf.summary.scalar(tag, datum, step=step)
-                step += 1
             writer.flush()
         self._multiplexer.AddRunsFromDirectory(self._logdir)
 
@@ -105,10 +103,8 @@ class MetricsPluginTest(tf.test.TestCase):
         writer = tf.summary.create_file_writer(subdir)
 
         with writer.as_default():
-            step = 0
-            for datum in data:
+            for step, datum in enumerate(data):
                 tf.summary.histogram(tag, datum, step=step)
-                step += 1
             writer.flush()
         self._multiplexer.AddRunsFromDirectory(self._logdir)
 

@@ -69,7 +69,7 @@ def run(wave_name, wave_constructor, step):
     # next to the audio. This one includes the source code behind the
     # waveform for context.
     source = "\n".join(
-        "    %s" % line.rstrip()
+        f"    {line.rstrip()}"
         for line in inspect.getsourcelines(wave_constructor)[0]
     )
     description = "A wave of type `%r`, generated via:\n\n%s" % (
@@ -138,13 +138,12 @@ def run_all(base_logdir):
 
 
 def main(unused_argv):
-    print("Saving output to %s." % FLAGS.logdir)
+    print(f"Saving output to {FLAGS.logdir}.")
     print(
-        "To view results in your browser, run `tensorboard --logdir %s`"
-        % FLAGS.logdir
+        f"To view results in your browser, run `tensorboard --logdir {FLAGS.logdir}`"
     )
     run_all(FLAGS.logdir)
-    print("Done. Output saved to %s." % FLAGS.logdir)
+    print(f"Done. Output saved to {FLAGS.logdir}.")
 
 
 if __name__ == "__main__":

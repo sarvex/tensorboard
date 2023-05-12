@@ -111,11 +111,9 @@ def scalar_pb(tag, data, description=None):
     """
     arr = np.array(data)
     if arr.shape != ():
-        raise ValueError(
-            "Expected scalar shape for tensor, got shape: %s." % arr.shape
-        )
+        raise ValueError(f"Expected scalar shape for tensor, got shape: {arr.shape}.")
     if arr.dtype.kind not in ("b", "i", "u", "f"):  # bool, int, uint, float
-        raise ValueError("Cast %s to float is not supported" % arr.dtype.name)
+        raise ValueError(f"Cast {arr.dtype.name} to float is not supported")
     tensor_proto = tensor_util.make_tensor_proto(arr.astype(np.float32))
     summary_metadata = metadata.create_summary_metadata(
         display_name=None, description=description

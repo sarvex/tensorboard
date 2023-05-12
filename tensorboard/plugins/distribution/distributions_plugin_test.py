@@ -125,7 +125,6 @@ class DistributionsPluginTest(tf.test.TestCase):
         )
         self.assertEqual(
             {
-                # _RUN_WITH_SCALARS omitted: No distribution data.
                 self._RUN_WITH_LEGACY_DISTRIBUTION: {
                     self._LEGACY_DISTRIBUTION_TAG: {
                         "displayName": self._LEGACY_DISTRIBUTION_TAG,
@@ -133,11 +132,10 @@ class DistributionsPluginTest(tf.test.TestCase):
                     },
                 },
                 self._RUN_WITH_DISTRIBUTION: {
-                    "%s/histogram_summary"
-                    % self._DISTRIBUTION_TAG: {
+                    f"{self._DISTRIBUTION_TAG}/histogram_summary": {
                         "displayName": self._DISPLAY_NAME,
                         "description": self._HTML_DESCRIPTION,
-                    },
+                    }
                 },
             },
             self.plugin.index_impl(context.RequestContext(), experiment="exp"),
@@ -184,7 +182,7 @@ class DistributionsPluginTest(tf.test.TestCase):
     def test_distributions_with_distribution(self):
         self._test_distributions(
             self._RUN_WITH_DISTRIBUTION,
-            "%s/histogram_summary" % self._DISTRIBUTION_TAG,
+            f"{self._DISTRIBUTION_TAG}/histogram_summary",
         )
 
 

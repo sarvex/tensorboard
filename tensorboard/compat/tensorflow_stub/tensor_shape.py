@@ -27,19 +27,19 @@ class Dimension(object):
         if value is None:
             self._value = None
         elif isinstance(value, dtypes.DType):
-            raise TypeError("Cannot convert %s to Dimension" % value)
+            raise TypeError(f"Cannot convert {value} to Dimension")
         else:
             self._value = int(value)
             if (
                 not isinstance(value, compat.bytes_or_text_types)
                 and self._value != value
             ):
-                raise ValueError("Ambiguous dimension: %s" % value)
+                raise ValueError(f"Ambiguous dimension: {value}")
             if self._value < 0:
                 raise ValueError("Dimension %d must be >= 0" % self._value)
 
     def __repr__(self):
-        return "Dimension(%s)" % repr(self._value)
+        return f"Dimension({repr(self._value)})"
 
     def __str__(self):
         value = self._value
@@ -114,9 +114,7 @@ class Dimension(object):
             is_convertible_with).
         """
         if not self.is_convertible_with(other):
-            raise ValueError(
-                "Dimensions %s and %s are not convertible" % (self, other)
-            )
+            raise ValueError(f"Dimensions {self} and {other} are not convertible")
 
     def merge_with(self, other):
         """Returns a Dimension that combines the information in `self` and
@@ -481,10 +479,7 @@ def as_dimension(value):
     Returns:
       A Dimension corresponding to the given value.
     """
-    if isinstance(value, Dimension):
-        return value
-    else:
-        return Dimension(value)
+    return value if isinstance(value, Dimension) else Dimension(value)
 
 
 # @tf_export("TensorShape")
@@ -555,9 +550,9 @@ class TensorShape(object):
         if self.ndims is None:
             return "<unknown>"
         elif self.ndims == 1:
-            return "(%s,)" % self._dims[0]
+            return f"({self._dims[0]},)"
         else:
-            return "(%s)" % ", ".join(str(d) for d in self._dims)
+            return f'({", ".join(str(d) for d in self._dims)})'
 
     @property
     def dims(self):
@@ -575,10 +570,9 @@ class TensorShape(object):
         """Returns the rank of this shape, or None if it is unspecified."""
         if self._dims is None:
             return None
-        else:
-            if self._ndims is None:
-                self._ndims = len(self._dims)
-            return self._ndims
+        if self._ndims is None:
+            self._ndims = len(self._dims)
+        return self._ndims
 
     def __len__(self):
         """Returns the rank of this shape, or raises ValueError if
@@ -621,43 +615,34 @@ class TensorShape(object):
             if `self` is completely unknown and the step is set.
         """
         if self._dims is not None:
-            if isinstance(key, slice):
-                return TensorShape(self._dims[key])
-            else:
-                return self._dims[key]
-        else:
-            if isinstance(key, slice):
-                start = key.start if key.start is not None else 0
-                stop = key.stop
+            return (
+                TensorShape(self._dims[key])
+                if isinstance(key, slice)
+                else self._dims[key]
+            )
+        if not isinstance(key, slice):
+            return Dimension(None)
+        if key.step is not None:
+            # TODO(mrry): Handle these maybe.
+            raise ValueError("Steps are not yet handled")
+        start = key.start if key.start is not None else 0
+        stop = key.stop
 
-                if key.step is not None:
-                    # TODO(mrry): Handle these maybe.
-                    raise ValueError("Steps are not yet handled")
-                if stop is None:
-                    # NOTE(mrry): This implies that TensorShape(None) is convertible with
-                    # TensorShape(None)[1:], which is obviously not true. It would be
-                    # possible to track the number of dimensions symbolically,
-                    # and perhaps we should do that.
-                    return unknown_shape()
-                elif start < 0 or stop < 0:
-                    # TODO(mrry): Handle this better, as it will be useful for handling
-                    # suffixes of otherwise unknown shapes.
-                    return unknown_shape()
-                else:
-                    return unknown_shape(ndims=stop - start)
-            else:
-                return Dimension(None)
+        return (
+            unknown_shape()
+            if stop is None or start < 0 or stop < 0
+            else unknown_shape(ndims=stop - start)
+        )
 
     def num_elements(self):
         """Returns the total number of elements, or none for incomplete
         shapes."""
-        if self.is_fully_defined():
-            size = 1
-            for dim in self._dims:
-                size *= dim.value
-            return size
-        else:
+        if not self.is_fully_defined():
             return None
+        size = 1
+        for dim in self._dims:
+            size *= dim.value
+        return size
 
     def merge_with(self, other):
         """Returns a `TensorShape` combining the information in `self` and
@@ -679,17 +664,12 @@ class TensorShape(object):
         other = as_shape(other)
         if self._dims is None:
             return other
-        else:
-            try:
-                self.assert_same_rank(other)
-                new_dims = []
-                for i, dim in enumerate(self._dims):
-                    new_dims.append(dim.merge_with(other[i]))
-                return TensorShape(new_dims)
-            except ValueError:
-                raise ValueError(
-                    "Shapes %s and %s are not convertible" % (self, other)
-                )
+        try:
+            self.assert_same_rank(other)
+            new_dims = [dim.merge_with(other[i]) for i, dim in enumerate(self._dims)]
+            return TensorShape(new_dims)
+        except ValueError:
+            raise ValueError(f"Shapes {self} and {other} are not convertible")
 
     def concatenate(self, other):
         """Returns the concatenation of the dimension in `self` and `other`.
@@ -726,11 +706,12 @@ class TensorShape(object):
             same rank.
         """
         other = as_shape(other)
-        if self.ndims is not None and other.ndims is not None:
-            if self.ndims != other.ndims:
-                raise ValueError(
-                    "Shapes %s and %s must have the same rank" % (self, other)
-                )
+        if (
+            self.ndims is not None
+            and other.ndims is not None
+            and self.ndims != other.ndims
+        ):
+            raise ValueError(f"Shapes {self} and {other} must have the same rank")
 
     def assert_has_rank(self, rank):
         """Raises an exception if `self` is not convertible with the given
@@ -867,9 +848,7 @@ class TensorShape(object):
           ValueError: If `self` and `other` do not represent the same shape.
         """
         if not self.is_convertible_with(other):
-            raise ValueError(
-                "Shapes %s and %s are inconvertible" % (self, other)
-            )
+            raise ValueError(f"Shapes {self} and {other} are inconvertible")
 
     def most_specific_convertible_shape(self, other):
         """Returns the most specific TensorShape convertible with `self` and
@@ -920,7 +899,7 @@ class TensorShape(object):
           ValueError: If `self` does not have a known value for every dimension.
         """
         if not self.is_fully_defined():
-            raise ValueError("Shape %s is not fully defined" % self)
+            raise ValueError(f"Shape {self} is not fully defined")
 
     def as_list(self):
         """Returns a list of integers or `None` for each dimension.
@@ -969,9 +948,7 @@ class TensorShape(object):
             raise ValueError(
                 "The inequality of unknown TensorShapes is undefined."
             )
-        if self.ndims != other.ndims:
-            return True
-        return self._dims != other.dims
+        return True if self.ndims != other.ndims else self._dims != other.dims
 
     def __reduce__(self):
         return TensorShape, (self._dims,)
@@ -979,10 +956,7 @@ class TensorShape(object):
 
 def as_shape(shape):
     """Converts the given object to a TensorShape."""
-    if isinstance(shape, TensorShape):
-        return shape
-    else:
-        return TensorShape(shape)
+    return shape if isinstance(shape, TensorShape) else TensorShape(shape)
 
 
 def unknown_shape(ndims=None):

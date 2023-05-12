@@ -202,7 +202,7 @@ class ImagesPluginTest(tf.test.TestCase):
         entries = self._DeserializeResponse(response.get_data())
         query_string = entries[0]["query"]
         response = self.server.get(
-            "/data/plugin/images/individualImage?" + query_string
+            f"/data/plugin/images/individualImage?{query_string}"
         )
         self.assertEqual(200, response.status_code)
         self.assertEqual("image/png", response.headers.get("content-type"))
@@ -216,7 +216,7 @@ class ImagesPluginTest(tf.test.TestCase):
         entries = self._DeserializeResponse(response.get_data())
         query_string = entries[0]["query"]
         response = self.server.get(
-            "/data/plugin/images/individualImage?" + query_string
+            f"/data/plugin/images/individualImage?{query_string}"
         )
         self.assertEqual(200, response.status_code)
         self.assertEqual("image/png", response.headers.get("content-type"))

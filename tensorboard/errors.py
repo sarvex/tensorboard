@@ -124,7 +124,4 @@ class PermissionDeniedError(PublicError):
 
 
 def _format_message(code_name, details):
-    if details is None:
-        return code_name
-    else:
-        return "%s: %s" % (code_name, details)
+    return code_name if details is None else f"{code_name}: {details}"

@@ -155,12 +155,12 @@ def main(argv):
     del argv  # Unused.
     if FLAGS.action == "create_experiment":
         create_experiment()
-    elif FLAGS.action == "start_session":
-        start_session()
     elif FLAGS.action == "end_session":
         end_session()
+    elif FLAGS.action == "start_session":
+        start_session()
     else:
-        raise ValueError("Invalid action requested: '%s'" % FLAGS.action)
+        raise ValueError(f"Invalid action requested: '{FLAGS.action}'")
 
 
 def create_experiment():

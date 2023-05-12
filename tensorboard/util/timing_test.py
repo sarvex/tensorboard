@@ -30,7 +30,7 @@ class LogLatencyTest(tb_test.TestCase):
     def assert_logs_matching(self, needle):
         with self.assertLogs() as cm:
             yield
-        if not any(needle in line for line in cm.output):
+        if all(needle not in line for line in cm.output):
             self.fail(
                 "Expected a log line containing %r, but got:\n%s"
                 % (needle, "\n".join(cm.output))

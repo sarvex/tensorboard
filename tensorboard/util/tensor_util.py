@@ -126,10 +126,7 @@ def GetFromNumpyDTypeDict(dtype_dict, dtype):
     for key, val in dtype_dict.items():
         if key == dtype:
             return val
-    for key, val in BACKUP_DICT.items():
-        if key == dtype:
-            return val
-    return None
+    return next((val for key, val in BACKUP_DICT.items() if key == dtype), None)
 
 
 def GetNumpyAppendFn(dtype):
@@ -137,7 +134,7 @@ def GetNumpyAppendFn(dtype):
     # dtype with a single constant (np.string does not exist) to decide
     # dtype is a "string" type. We need to compare the dtype.type to be
     # sure it's a string type.
-    if dtype.type == np.string_ or dtype.type == np.unicode_:
+    if dtype.type in [np.string_, np.unicode_]:
         return SlowAppendObjectArrayToTensorProto
     return GetFromNumpyDTypeDict(_NP_TO_APPEND_FN, dtype)
 
@@ -155,8 +152,7 @@ def _GetDenseDimensions(list_of_lists):
 def _FlattenToStrings(nested_strings):
     if isinstance(nested_strings, (list, tuple)):
         for inner in nested_strings:
-            for flattened_string in _FlattenToStrings(inner):
-                yield flattened_string
+            yield from _FlattenToStrings(inner)
     else:
         yield nested_strings
 
@@ -190,30 +186,26 @@ class _Message(object):
 
 
 def _FirstNotNone(l):
-    for x in l:
-        if x is not None:
-            return x
-    return None
+    return next((x for x in l if x is not None), None)
 
 
 def _NotNone(v):
-    if v is None:
-        return _Message("None")
-    else:
-        return v
+    return _Message("None") if v is None else v
 
 
 def _FilterTuple(v):
     if not isinstance(v, (list, tuple)):
         return v
-    if isinstance(v, tuple):
-        if not any(isinstance(x, (list, tuple)) for x in v):
-            return None
-    if isinstance(v, list):
-        if not any(isinstance(x, (list, tuple)) for x in v):
-            return _FirstNotNone(
-                [None if isinstance(x, (list, tuple)) else x for x in v]
-            )
+    if isinstance(v, tuple) and not any(
+        isinstance(x, (list, tuple)) for x in v
+    ):
+        return None
+    if isinstance(v, list) and not any(
+        isinstance(x, (list, tuple)) for x in v
+    ):
+        return _FirstNotNone(
+            [None if isinstance(x, (list, tuple)) else x for x in v]
+        )
     return _FirstNotNone([_FilterTuple(x) for x in v])
 
 
@@ -242,10 +234,7 @@ def _FilterComplex(v):
 def _FilterStr(v):
     if isinstance(v, (list, tuple)):
         return _FirstNotNone([_FilterStr(x) for x in v])
-    if isinstance(v, compat.bytes_or_text_types):
-        return None
-    else:
-        return _NotNone(v)
+    return None if isinstance(v, compat.bytes_or_text_types) else _NotNone(v)
 
 
 def _FilterBool(v):
@@ -284,8 +273,7 @@ def _Assertconvertible(values, dtype):
     mismatch = _FirstNotNone([fn(values) for fn in fn_list])
     if mismatch is not None:
         raise TypeError(
-            "Expected %s, got %s of type '%s' instead."
-            % (dtype.name, repr(mismatch), type(mismatch).__name__)
+            f"Expected {dtype.name}, got {repr(mismatch)} of type '{type(mismatch).__name__}' instead."
         )
 
 
@@ -348,10 +336,7 @@ def make_tensor_proto(values, dtype=None, shape=None, verify_shape=False):
 
     # We first convert value to a numpy array or scalar.
     if isinstance(values, (np.ndarray, np.generic)):
-        if dtype:
-            nparray = values.astype(dtype.as_numpy_dtype)
-        else:
-            nparray = values
+        nparray = values.astype(dtype.as_numpy_dtype) if dtype else values
     elif callable(getattr(values, "__array__", None)) or isinstance(
         getattr(values, "__array_interface__", None), dict
     ):
@@ -367,10 +352,7 @@ def make_tensor_proto(values, dtype=None, shape=None, verify_shape=False):
             raise ValueError("None values not supported.")
         # if dtype is provided, forces numpy array to be the type
         # provided if possible.
-        if dtype and dtype.is_numpy_compatible:
-            np_dt = dtype.as_numpy_dtype
-        else:
-            np_dt = None
+        np_dt = dtype.as_numpy_dtype if dtype and dtype.is_numpy_compatible else None
         # If shape is None, numpy.prod returns None when dtype is not set, but raises
         # exception when dtype is set to np.int64
         if shape is not None and np.prod(shape, dtype=np.int64) == 0:
@@ -404,7 +386,7 @@ def make_tensor_proto(values, dtype=None, shape=None, verify_shape=False):
     # conversion says.
     numpy_dtype = dtypes.as_dtype(nparray.dtype)
     if numpy_dtype is None:
-        raise TypeError("Unrecognized data type: %s" % nparray.dtype)
+        raise TypeError(f"Unrecognized data type: {nparray.dtype}")
 
     # If dtype was specified and is a quantized type, we convert
     # numpy_dtype back into the quantized version.
@@ -416,8 +398,7 @@ def make_tensor_proto(values, dtype=None, shape=None, verify_shape=False):
         or dtype.base_dtype != numpy_dtype.base_dtype
     ):
         raise TypeError(
-            "Inconvertible types: %s vs. %s. Value is %s"
-            % (dtype, nparray.dtype, values)
+            f"Inconvertible types: {dtype} vs. {nparray.dtype}. Value is {values}"
         )
 
     # If shape is not given, get the shape from the numpy array.
@@ -430,12 +411,10 @@ def make_tensor_proto(values, dtype=None, shape=None, verify_shape=False):
         shape_size = np.prod(shape, dtype=np.int64)
         is_same_size = shape_size == nparray.size
 
-        if verify_shape:
-            if not nparray.shape == tuple(shape):
-                raise TypeError(
-                    "Expected Tensor's shape: %s, got %s."
-                    % (tuple(shape), nparray.shape)
-                )
+        if verify_shape and nparray.shape != tuple(shape):
+            raise TypeError(
+                f"Expected Tensor's shape: {tuple(shape)}, got {nparray.shape}."
+            )
 
         if nparray.size > shape_size:
             raise ValueError(
@@ -489,7 +468,7 @@ def make_tensor_proto(values, dtype=None, shape=None, verify_shape=False):
     append_fn = GetNumpyAppendFn(proto_values.dtype)
     if append_fn is None:
         raise TypeError(
-            "Element type not supported in TensorProto: %s" % numpy_dtype.name
+            f"Element type not supported in TensorProto: {numpy_dtype.name}"
         )
     append_fn(tensor_proto, proto_values)
 
@@ -521,7 +500,7 @@ def make_ndarray(tensor):
             .copy()
             .reshape(shape)
         )
-    elif tensor_dtype == dtypes.float16 or tensor_dtype == dtypes.bfloat16:
+    elif tensor_dtype in [dtypes.float16, dtypes.bfloat16]:
         # the half_val field of the TensorProto stores the binary representation
         # of the fp16: we need to reinterpret this as a proper float16
         if len(tensor.half_val) == 1:
@@ -577,9 +556,7 @@ def make_ndarray(tensor):
                 np.array(tensor.string_val[0], dtype=dtype), num_elements
             ).reshape(shape)
         else:
-            return np.array(
-                [x for x in tensor.string_val], dtype=dtype
-            ).reshape(shape)
+            return np.array(list(tensor.string_val), dtype=dtype).reshape(shape)
     elif tensor_dtype == dtypes.complex64:
         it = iter(tensor.scomplex_val)
         if len(tensor.scomplex_val) == 2:
@@ -616,4 +593,4 @@ def make_ndarray(tensor):
         else:
             return np.fromiter(tensor.bool_val, dtype=dtype).reshape(shape)
     else:
-        raise TypeError("Unsupported tensor type: %s" % tensor.dtype)
+        raise TypeError(f"Unsupported tensor type: {tensor.dtype}")

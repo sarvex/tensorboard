@@ -186,8 +186,7 @@ class CustomScalarsPluginTest(tf.test.TestCase):
         wsgi_app = application.TensorBoardWSGI([self.plugin])
         server = werkzeug_test.Client(wsgi_app, wrappers.BaseResponse)
         response = server.get(
-            "/data/plugin/custom_scalars/download_data?run=%s&tag=%s"
-            % ("foo", "squares/scalar_summary")
+            '/data/plugin/custom_scalars/download_data?run=foo&tag=squares/scalar_summary'
         )
         self.assertEqual(200, response.status_code)
         self.assertEqual("application/json", response.headers["Content-Type"])
@@ -203,8 +202,7 @@ class CustomScalarsPluginTest(tf.test.TestCase):
         wsgi_app = application.TensorBoardWSGI([self.plugin])
         server = werkzeug_test.Client(wsgi_app, wrappers.BaseResponse)
         response = server.get(
-            "/data/plugin/custom_scalars/download_data?run=%s&tag=%s&format=csv"
-            % ("foo", "squares/scalar_summary")
+            '/data/plugin/custom_scalars/download_data?run=foo&tag=squares/scalar_summary&format=csv'
         )
         self.assertEqual(200, response.status_code)
         self.assertEqual(

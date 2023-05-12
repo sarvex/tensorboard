@@ -128,8 +128,7 @@ def get_api_client(api_endpoint=None):
     server_info = _get_server_info(api_endpoint=api_endpoint)
     _handle_server_info(server_info)
     channel_creds = grpc.ssl_channel_credentials()
-    credentials = auth.CredentialsStore().read_credentials()
-    if credentials:
+    if credentials := auth.CredentialsStore().read_credentials():
         channel_creds = grpc.composite_channel_credentials(
             channel_creds, auth.id_token_call_credentials(credentials)
         )
@@ -156,4 +155,4 @@ def _handle_server_info(info):
         sys.stderr.write("Warning [from server]: %s\n" % compat.details)
         sys.stderr.flush()
     elif compat.verdict == server_info_pb2.VERDICT_ERROR:
-        raise ValueError("Error [from server]: %s" % compat.details)
+        raise ValueError(f"Error [from server]: {compat.details}")

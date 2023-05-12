@@ -56,9 +56,4 @@ def parse_plugin_metadata(content):
     if content == b"{}":
         # Old-style JSON format. Equivalent to an all-default proto.
         return plugin_data_pb2.HistogramPluginData()
-    else:
-        result = plugin_data_pb2.HistogramPluginData.FromString(content)
-        if result.version == 0:
-            return result
-        # No other versions known at this time, so no migrations to do.
-        return result
+    return plugin_data_pb2.HistogramPluginData.FromString(content)

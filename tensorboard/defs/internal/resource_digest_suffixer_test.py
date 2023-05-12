@@ -39,9 +39,7 @@ class ResourceDigestSuffixerTest(tb_test.TestCase):
             template_path, {"%REPLACE_ME%": res_path}
         )
 
-        self.assertEqual(
-            "hellores?%sworld" % _EXPECTED_QUERY_FOR_MY_CONTENT, actual
-        )
+        self.assertEqual(f"hellores?{_EXPECTED_QUERY_FOR_MY_CONTENT}world", actual)
 
     def test_replacement_multiple(self):
         template_path = self.create_file(

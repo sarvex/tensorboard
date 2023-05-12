@@ -66,16 +66,13 @@ class TextPluginTest(tf.test.TestCase):
             with test_util.FileWriterCache.get(subdir) as writer:
                 writer.add_graph(sess.graph)
 
-                step = 0
-                for gem in GEMS:
-                    message = run_name + " *loves* " + gem
+                for step, gem in enumerate(GEMS):
+                    message = f"{run_name} *loves* {gem}"
                     feed_dict = {
                         placeholder: message,
                     }
                     summ = sess.run(summary_tensor, feed_dict=feed_dict)
                     writer.add_summary(summ, global_step=step)
-                    step += 1
-
                 # Test unicode superscript 4.
                 vector_message = ["one", "two", "three", "\u2074"]
                 summ = sess.run(
@@ -120,10 +117,8 @@ class TextPluginTest(tf.test.TestCase):
         for i in range(4):
             self.assertEqual(fry[i]["step"], i)
             self.assertEqual(leela[i]["step"], i)
-            self.assertEqual(
-                fry[i]["text"], "<p>fry <em>loves</em> %s</p>" % GEMS[i]
-            )
-            self.assertEqual(leela[i]["text"], "leela *loves* %s" % GEMS[i])
+            self.assertEqual(fry[i]["text"], f"<p>fry <em>loves</em> {GEMS[i]}</p>")
+            self.assertEqual(leela[i]["text"], f"leela *loves* {GEMS[i]}")
 
         md_table = plugin.text_impl(
             context.RequestContext(),

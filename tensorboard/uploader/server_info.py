@@ -104,7 +104,7 @@ def fetch_server_info(origin, upload_plugins):
       CommunicationError: Upon failure to connect to or successfully
         communicate with the remote server.
     """
-    endpoint = "%s/api/uploader" % origin
+    endpoint = f"{origin}/api/uploader"
     server_info_request = _server_info_request(upload_plugins)
     post_body = server_info_request.SerializeToString()
     logging.info("Requested server info: <%r>", server_info_request)
@@ -113,10 +113,10 @@ def fetch_server_info(origin, upload_plugins):
             endpoint,
             data=post_body,
             timeout=_REQUEST_TIMEOUT_SECONDS,
-            headers={"User-Agent": "tensorboard/%s" % version.VERSION},
+            headers={"User-Agent": f"tensorboard/{version.VERSION}"},
         )
     except requests.RequestException as e:
-        raise CommunicationError("Failed to connect to backend: %s" % e)
+        raise CommunicationError(f"Failed to connect to backend: {e}")
     if not response.ok:
         raise CommunicationError(
             "Non-OK status from backend (%d %s): %r"
@@ -150,7 +150,7 @@ def create_server_info(frontend_origin, api_endpoint, upload_plugins):
     placeholder = "{{EID}}"
     while placeholder in frontend_origin:
         placeholder = "{%s}" % placeholder
-    url_format.template = "%s/experiment/%s/" % (frontend_origin, placeholder)
+    url_format.template = f"{frontend_origin}/experiment/{placeholder}/"
     url_format.id_placeholder = placeholder
     result.plugin_control.allowed_plugins[:] = upload_plugins
     return result

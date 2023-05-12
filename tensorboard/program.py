@@ -237,11 +237,11 @@ class TensorBoard(object):
             # which Abseil flags to include in the short helpstring.
             for flag in set(absl_flags.FLAGS.get_key_flags_for_module(arg0)):
                 if hasattr(flags, flag.name):
-                    raise ValueError("Conflicting Abseil flag: %s" % flag.name)
+                    raise ValueError(f"Conflicting Abseil flag: {flag.name}")
                 setattr(flags, flag.name, flag.value)
         for k, v in kwargs.items():
             if not hasattr(flags, k):
-                raise ValueError("Unknown TensorBoard flag: %s" % k)
+                raise ValueError(f"Unknown TensorBoard flag: {k}")
             setattr(flags, k, v)
         if getattr(flags, _SUBCOMMAND_FLAG) == _SERVE_SUBCOMMAND_NAME:
             for loader in self.plugin_loaders:
@@ -487,11 +487,7 @@ def _should_use_data_server(logdir):
     if not logdir:
         # Maybe using `--logdir_spec` or something. Not supported.
         return False
-    if "://" not in logdir:
-        return True
-    if logdir.startswith("gs://"):
-        return True
-    return False
+    return True if "://" not in logdir else bool(logdir.startswith("gs://"))
 
 
 class TensorBoardSubcommand(metaclass=ABCMeta):
@@ -716,15 +712,13 @@ class WerkzeugServer(serving.ThreadedWSGIServer, TensorBoardServer):
                 and e.errno == errno.EADDRNOTAVAIL
             ):
                 raise TensorBoardServerException(
-                    "TensorBoard could not bind to unavailable address %s"
-                    % host
+                    f"TensorBoard could not bind to unavailable address {host}"
                 )
             elif (
                 hasattr(errno, "EAFNOSUPPORT") and e.errno == errno.EAFNOSUPPORT
             ):
                 raise TensorBoardServerException(
-                    "Tensorboard could not bind to unsupported address family %s"
-                    % host
+                    f"Tensorboard could not bind to unsupported address family {host}"
                 )
             # Raise the raw exception if it wasn't identifiable as a user error.
             raise
@@ -822,9 +816,7 @@ class WerkzeugServer(serving.ThreadedWSGIServer, TensorBoardServer):
         exc_info = sys.exc_info()
         e = exc_info[1]
         if isinstance(e, IOError) and e.errno == errno.EPIPE:
-            logger.warning(
-                "EPIPE caused by %s in HTTP serving" % str(client_address)
-            )
+            logger.warning(f"EPIPE caused by {str(client_address)} in HTTP serving")
         else:
             logger.error("HTTP serving error", exc_info=exc_info)
 
@@ -843,7 +835,7 @@ class WerkzeugServer(serving.ThreadedWSGIServer, TensorBoardServer):
             else:
                 host = self._host
                 display_host = (
-                    "[%s]" % host
+                    f"[{host}]"
                     if ":" in host and not host.startswith("[")
                     else host
                 )

@@ -113,14 +113,13 @@ class ScalarsPlugin(base_plugin.TBPlugin):
                 "No scalar data for run=%r, tag=%r" % (run, tag)
             )
         values = [(x.wall_time, x.step, x.value) for x in scalars]
-        if output_format == OutputFormat.CSV:
-            string_io = io.StringIO()
-            writer = csv.writer(string_io)
-            writer.writerow(["Wall time", "Step", "Value"])
-            writer.writerows(values)
-            return (string_io.getvalue(), "text/csv")
-        else:
+        if output_format != OutputFormat.CSV:
             return (values, "application/json")
+        string_io = io.StringIO()
+        writer = csv.writer(string_io)
+        writer.writerow(["Wall time", "Step", "Value"])
+        writer.writerows(values)
+        return (string_io.getvalue(), "text/csv")
 
     def scalars_multirun_impl(self, ctx, tag, runs, experiment):
         """Result of the form `(body, mime_type)`."""

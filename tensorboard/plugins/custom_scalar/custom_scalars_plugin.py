@@ -314,7 +314,7 @@ class CustomScalarsPlugin(base_plugin.TBPlugin):
             else:
                 # This is the first layout encountered.
                 merged_layout = layout_proto
-                for category in layout_proto.category:
+                for category in merged_layout.category:
                     title_to_category[category.title] = category
 
         if merged_layout:

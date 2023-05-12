@@ -53,7 +53,7 @@ class PathPrefixMiddleware(object):
             )
         self._application = application
         self._path_prefix = path_prefix
-        self._strict_prefix = self._path_prefix + "/"
+        self._strict_prefix = f"{self._path_prefix}/"
 
     def __call__(self, environ, start_response):
         path = environ.get("PATH_INFO", "")

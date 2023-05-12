@@ -40,10 +40,7 @@ def _usage(shorthelp):
         except (OverflowError, TypeError, ValueError):
             # Just display the docstring as-is.
             pass
-    if shorthelp:
-        flag_str = flags.FLAGS.main_module_help()
-    else:
-        flag_str = str(flags.FLAGS)
+    flag_str = flags.FLAGS.main_module_help() if shorthelp else str(flags.FLAGS)
     try:
         _sys.stdout.write(doc)
         if flag_str:

@@ -76,8 +76,7 @@ def _lazy_tensor_creator_converter(value, dtype=None, name=None, as_ref=False):
     tensor = value()
     if dtype not in (None, tensor.dtype):
         raise RuntimeError(
-            "Cannot convert LazyTensorCreator returning dtype %s to dtype %s"
-            % (tensor.dtype, dtype)
+            f"Cannot convert LazyTensorCreator returning dtype {tensor.dtype} to dtype {dtype}"
         )
     return tensor
 

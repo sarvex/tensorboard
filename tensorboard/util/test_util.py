@@ -58,7 +58,7 @@ class FileWriter(tf.compat.v1.summary.FileWriter):
             tf_event = tf.compat.v1.Event.FromString(event.SerializeToString())
         else:
             tf_event = event
-            if not isinstance(event, bytes):
+            if not isinstance(tf_event, bytes):
                 logger.error(
                     "Added TensorFlow event proto. "
                     "Please prefer TensorBoard copy of the proto"
@@ -72,7 +72,7 @@ class FileWriter(tf.compat.v1.summary.FileWriter):
             )
         else:
             tf_summary = summary
-            if not isinstance(summary, bytes):
+            if not isinstance(tf_summary, bytes):
                 logger.error(
                     "Added TensorFlow summary proto. "
                     "Please prefer TensorBoard copy of the proto"
@@ -86,7 +86,7 @@ class FileWriter(tf.compat.v1.summary.FileWriter):
             )
         else:
             tf_session_log = session_log
-            if not isinstance(session_log, bytes):
+            if not isinstance(tf_session_log, bytes):
                 logger.error(
                     "Added TensorFlow session_log proto. "
                     "Please prefer TensorBoard copy of the proto"

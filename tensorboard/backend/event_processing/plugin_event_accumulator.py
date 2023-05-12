@@ -124,12 +124,10 @@ class EventAccumulator(object):
             this will enable multifile directory loading.
         """
         size_guidance = dict(size_guidance or DEFAULT_SIZE_GUIDANCE)
-        sizes = {}
-        for key in DEFAULT_SIZE_GUIDANCE:
-            if key in size_guidance:
-                sizes[key] = size_guidance[key]
-            else:
-                sizes[key] = DEFAULT_SIZE_GUIDANCE[key]
+        sizes = {
+            key: size_guidance.get(key, DEFAULT_SIZE_GUIDANCE[key])
+            for key in DEFAULT_SIZE_GUIDANCE
+        }
         self._size_guidance = size_guidance
         self._tensor_size_guidance = dict(tensor_size_guidance or {})
 
@@ -625,18 +623,7 @@ def _GetPurgeMessage(
     num_expired,
 ):
     """Return the string message associated with TensorBoard purges."""
-    return (
-        "Detected out of order event.step likely caused by a TensorFlow "
-        "restart. Purging {} expired tensor events from Tensorboard display "
-        "between the previous step: {} (timestamp: {}) and current step: {} "
-        "(timestamp: {})."
-    ).format(
-        num_expired,
-        most_recent_step,
-        most_recent_wall_time,
-        event_step,
-        event_wall_time,
-    )
+    return f"Detected out of order event.step likely caused by a TensorFlow restart. Purging {num_expired} expired tensor events from Tensorboard display between the previous step: {most_recent_step} (timestamp: {most_recent_wall_time}) and current step: {event_step} (timestamp: {event_wall_time})."
 
 
 def _GeneratorFromPath(path, event_file_active_filter=None):

@@ -57,13 +57,13 @@ def main():
     if not args.universal:
         server_binary = os.path.abspath(args.server_binary)
         if not os.path.isfile(server_binary):
-            raise RuntimeError("No such file: %s" % server_binary)
+            raise RuntimeError(f"No such file: {server_binary}")
 
     TDS = "tensorboard_data_server"  # convenience
 
     # Set up build tree.
     srcdir = pathlib.Path(os.path.dirname(__file__))
-    tmpdir = pathlib.Path(tempfile.mkdtemp(prefix="%s_build_" % TDS))
+    tmpdir = pathlib.Path(tempfile.mkdtemp(prefix=f"{TDS}_build_"))
     sys.stderr.write("tmpdir: %s\n" % tmpdir)
     os.makedirs(tmpdir / TDS / "bin", exist_ok=True)
     shutil.copyfile(srcdir / "setup.py", tmpdir / "setup.py")
@@ -85,7 +85,7 @@ def main():
                 "Unsupported platform: %r" % (platform.system(),)
             )
         cpu_name = "x86_64"
-        platform_tag = "%s_%s" % (platform_name, cpu_name)
+        platform_tag = f"{platform_name}_{cpu_name}"
 
     os.chdir(tmpdir)
     subprocess.run(

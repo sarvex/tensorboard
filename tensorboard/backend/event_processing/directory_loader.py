@@ -90,16 +90,14 @@ class DirectoryLoader(object):
             all_paths = io_wrapper.ListDirectoryAbsolute(self._directory)
             paths = sorted(p for p in all_paths if self._path_filter(p))
             for path in paths:
-                for value in self._LoadPath(path):
-                    yield value
+                yield from self._LoadPath(path)
         except tf.errors.OpError as e:
             if not tf.io.gfile.exists(self._directory):
                 raise directory_watcher.DirectoryDeletedError(
-                    "Directory %s has been permanently deleted"
-                    % self._directory
+                    f"Directory {self._directory} has been permanently deleted"
                 )
             else:
-                logger.info("Ignoring error during file loading: %s" % e)
+                logger.info(f"Ignoring error during file loading: {e}")
 
     def _LoadPath(self, path):
         """Generator for values from a single path's loader.

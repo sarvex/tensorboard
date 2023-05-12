@@ -256,12 +256,7 @@ def run_all(logdir, verbose=False):
     writer.add_summary(create_experiment_summary())
     writer.close()
     session_num = 0
-    num_sessions = (
-        len(TEMPERATURE_LIST)
-        * len(TEMPERATURE_LIST)
-        * len(HEAT_COEFFICIENTS)
-        * 2
-    )
+    num_sessions = ((len(TEMPERATURE_LIST)**2 * len(HEAT_COEFFICIENTS)) * 2)
     for initial_temperature in TEMPERATURE_LIST:
         for ambient_temperature in TEMPERATURE_LIST:
             for material in HEAT_COEFFICIENTS:
@@ -292,9 +287,9 @@ def main(unused_argv):
 
     init_temperature_list()
     shutil.rmtree(FLAGS.logdir, ignore_errors=True)
-    print("Saving output to %s." % FLAGS.logdir)
+    print(f"Saving output to {FLAGS.logdir}.")
     run_all(FLAGS.logdir, verbose=True)
-    print("Done. Output saved to %s." % FLAGS.logdir)
+    print(f"Done. Output saved to {FLAGS.logdir}.")
 
 
 if __name__ == "__main__":

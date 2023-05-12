@@ -90,11 +90,10 @@ class NpmiPluginTest(tf.test.TestCase):
                     if row_index == 0:
                         if col_index > 0:
                             python_classes.append(column)
+                    elif col_index == 0:
+                        python_annotations.append(column)
                     else:
-                        if col_index == 0:
-                            python_annotations.append(column)
-                        else:
-                            python_result[len(python_result) - 1].append(column)
+                        python_result[-1].append(column)
             with writer.as_default():
                 tensor_result = tf.convert_to_tensor(python_result)
                 tensor_annotations = tf.convert_to_tensor(python_annotations)

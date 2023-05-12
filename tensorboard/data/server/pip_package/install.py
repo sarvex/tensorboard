@@ -47,8 +47,8 @@ def main():
         result = _shell(
             [
                 build_script,
-                "--server-binary=%s" % (server_binary,),
-                "--out-dir=%s" % (tmpdir.name,),
+                f"--server-binary={server_binary}",
+                f"--out-dir={tmpdir.name}",
             ],
             capture_output=True,
         )

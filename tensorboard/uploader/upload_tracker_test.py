@@ -94,11 +94,11 @@ class UploadStatsTest(tb_test.TestCase):
     def testAddPlugin(self):
         stats = upload_tracker.UploadStats()
         stats.add_plugin("scalars")
-        self.assertEqual(stats.plugin_names, set(["scalars"]))
+        self.assertEqual(stats.plugin_names, {"scalars"})
         stats.add_plugin("scalars")
-        self.assertEqual(stats.plugin_names, set(["scalars"]))
+        self.assertEqual(stats.plugin_names, {"scalars"})
         stats.add_plugin("histograms")
-        self.assertEqual(stats.plugin_names, set(["histograms", "scalars"]))
+        self.assertEqual(stats.plugin_names, {"histograms", "scalars"})
 
     def testHasNewDataSinceLastSummarizeReturnsFalseInitially(self):
         stats = upload_tracker.UploadStats()

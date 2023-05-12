@@ -72,7 +72,7 @@ class Reservoir(object):
           ValueError: If size is negative or not an integer.
         """
         if size < 0 or size != round(size):
-            raise ValueError("size must be nonnegative integer, was %s" % size)
+            raise ValueError(f"size must be nonnegative integer, was {size}")
         self._buckets = collections.defaultdict(
             lambda: _ReservoirBucket(
                 size, random.Random(seed), always_keep_last
@@ -107,7 +107,7 @@ class Reservoir(object):
         """
         with self._mutex:
             if key not in self._buckets:
-                raise KeyError("Key %s was not found in Reservoir" % key)
+                raise KeyError(f"Key {key} was not found in Reservoir")
             bucket = self._buckets[key]
         return bucket.Items()
 
@@ -150,10 +150,7 @@ class Reservoir(object):
         """
         with self._mutex:
             if key:
-                if key in self._buckets:
-                    return self._buckets[key].FilterItems(filterFn)
-                else:
-                    return 0
+                return self._buckets[key].FilterItems(filterFn) if key in self._buckets else 0
             else:
                 return sum(
                     bucket.FilterItems(filterFn)
@@ -182,19 +179,14 @@ class _ReservoirBucket(object):
           ValueError: if the size is not a nonnegative integer.
         """
         if _max_size < 0 or _max_size != round(_max_size):
-            raise ValueError(
-                "_max_size must be nonnegative int, was %s" % _max_size
-            )
+            raise ValueError(f"_max_size must be nonnegative int, was {_max_size}")
         self.items = []
         # This mutex protects the internal items, ensuring that calls to Items and
         # AddItem are thread-safe
         self._mutex = threading.Lock()
         self._max_size = _max_size
         self._num_items_seen = 0
-        if _random is not None:
-            self._random = _random
-        else:
-            self._random = random.Random(0)
+        self._random = _random if _random is not None else random.Random(0)
         self.always_keep_last = always_keep_last
 
     def AddItem(self, item, f=lambda x: x):

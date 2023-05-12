@@ -52,8 +52,7 @@ class ReadableFormatter(BaseExperimentFormatter):
         super(ReadableFormatter, self).__init__()
 
     def format_experiment(self, experiment, experiment_url):
-        output = []
-        output.append(experiment_url)
+        output = [experiment_url]
         data = [
             ("Name", experiment.name or "[No Name]"),
             ("Description", experiment.description or "[No Description]"),
@@ -66,14 +65,14 @@ class ReadableFormatter(BaseExperimentFormatter):
             ("Tensor bytes", str(experiment.total_tensor_bytes)),
             ("Binary object bytes", str(experiment.total_blob_bytes)),
         ]
-        for name, value in data:
-            output.append(
-                "\t%s %s"
-                % (
-                    name.ljust(self._NAME_COLUMN_WIDTH),
-                    value,
-                )
+        output.extend(
+            "\t%s %s"
+            % (
+                name.ljust(self._NAME_COLUMN_WIDTH),
+                value,
             )
+            for name, value in data
+        )
         return "\n".join(output)
 
 

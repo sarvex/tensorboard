@@ -148,20 +148,16 @@ def run_all(logdir, num_summaries=400):
             k = step / float(num_summaries)
             run(k, step)
             writer.flush()
+    print(f"To view results in your browser, run `tensorboard --logdir {LOGDIR}`")
     print(
-        "To view results in your browser, run `tensorboard --logdir %s`"
-        % LOGDIR
-    )
-    print(
-        "Logs can be uploaded publicly to TensorBoard.dev via "
-        + "`tensorboard dev upload --logdir %s`" % LOGDIR
+        f"Logs can be uploaded publicly to TensorBoard.dev via `tensorboard dev upload --logdir {LOGDIR}`"
     )
 
 
 def main(unused_argv):
-    print("Running histograms demo. Output saving to %s." % LOGDIR)
+    print(f"Running histograms demo. Output saving to {LOGDIR}.")
     run_all(LOGDIR)
-    print("Done. Output saved to %s." % LOGDIR)
+    print(f"Done. Output saved to {LOGDIR}.")
 
 
 if __name__ == "__main__":

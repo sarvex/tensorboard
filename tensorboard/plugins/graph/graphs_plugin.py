@@ -282,7 +282,7 @@ class GraphsPlugin(base_plugin.TBPlugin):
         run = request.args.get("run")
         tag = request.args.get("tag")
         conceptual_arg = request.args.get("conceptual", False)
-        is_conceptual = True if conceptual_arg == "true" else False
+        is_conceptual = conceptual_arg == "true"
 
         if run is None:
             return http_util.Respond(
